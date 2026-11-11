@@ -14,7 +14,7 @@
 
 1. Create a short-lived feature/fix branch from `migration/nextjs`.
 2. Work within one scoped issue; link PRD, Specs UI, ADR, and tests as applicable.
-3. Open a PR targeting `migration/nextjs`. Complete a code review and QA evidence before merge. GitHub enforces PR-only updates; the current ruleset requires **zero** formal approving reviews because one maintainer owns the repository, but this does **not** waive the team's manual review policy.
+3. Open a PR targeting `migration/nextjs`. Complete a code review and QA evidence before merge. GitHub enforces PR-only updates; **migration/nextjs** currently has 0 mandatory GitHub approvals, but manual code review and QA evidence remain required. **main** additionally uses Classic Branch Protection mirrored from Happy-Birhday: 1 approval, code-owner review from `@febriyadi` (configured in `.github/CODEOWNERS` on `main`), dismissal of stale approvals, resolved conversations, admin enforcement, no force-push and no deletion. PR authors cannot approve their own changes.
 4. Validate build/typecheck/lint/tests and source-to-target visual regressions once CI is available. Do not enable mandatory status checks until their workflows and names have been verified.
 5. When the full project is ready, open a reviewed PR from `migration/nextjs` to `main`. The refactor must pass all agreed release, content-rights, responsive, and rollback gates.
 6. After cutover, create routine feature/fix branches from `main` and PR directly into `main`; retire `migration/nextjs` only after the project is completed and archived appropriately.
@@ -52,11 +52,11 @@ The candidate and stable tags point to the same SHA; artifacts must be verified 
 
 | Target | Ruleset ID | Enforced GitHub rules |
 | --- | --- | --- |
-| `main` | `27006731` | PR required, block non-fast-forward updates, block deletion; resolve PR threads; required approvals = 0 |
+| `main` | `27006731` + Classic Branch Protection | PR required; **1 approval + code-owner review (`@febriyadi`)**, dismiss stale reviews, resolve conversations, enforce admins, block force-push and deletion. The existing ruleset also remains active. |
 | `migration/nextjs` | `27006735` | PR required, block non-fast-forward updates, block deletion; resolve PR threads; required approvals = 0 |
 | tags `v*` | `27006749` | Block updates and deletion; new tag creation allowed |
 
-Repo has no workflow or required status check at the time of writing. This table records successful rule creation/verification; it does not claim CI, deployment environments, branch review policy automation, or actual releases exist.
+Verified against Happy-Birhday's Classic Branch Protection on 2026-11-11: the `main` review settings match the reference. `main` has `.github/CODEOWNERS` (`* @febriyadi`) added via PR #2. The comparison reference uses Classic Branch Protection rather than repository rulesets; Personal-Website retains its existing rulesets as additional safeguards. No required status checks are configured yet because the destination has no CI workflows. Do not merge a PR to `main` without an eligible **separate** review account.
 
 ## Minimum PR acceptance evidence
 
