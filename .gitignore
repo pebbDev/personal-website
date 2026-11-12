@@ -1,0 +1,28 @@
+# dependencies
+/node_modules/
+/.pnp
+.pnp.js
+
+# Next.js build artifacts
+/.next/
+/out/
+/build/
+/coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated local Husky hook shims
+.husky/_/
+
+# environment and secrets
+.env*
+!.env.example
+*.pem
+
+# local tooling
+.DS_Store
+.vscode/
+.vercel/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
