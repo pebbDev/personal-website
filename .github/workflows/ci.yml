@@ -1,4 +1,5 @@
-name: CI
+# Governance category: Git, Release & Safety Governance
+name: "Git, Release & Safety Governance"
 
 on:
   pull_request:
