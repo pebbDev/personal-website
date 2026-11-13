@@ -26,3 +26,4 @@ next-env.d.ts
 npm-debug.log*
 pnpm-debug.log*
 yarn-error.log*
+.claude
