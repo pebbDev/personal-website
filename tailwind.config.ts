@@ -5,10 +5,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#181c26",
-        canvas: "#ffffff",
-        muted: "#667085",
-        outline: "#e6e9f0",
+        ink: "var(--foreground)",
+        canvas: "var(--background)",
+        muted: "var(--muted)",
+        outline: "var(--border)",
       },
       maxWidth: {
         site: "1120px",

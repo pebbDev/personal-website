@@ -1,5 +1,6 @@
-import Home from "@/features/home/home";
+import PagePlaceholder from "@/components/common/page-placeholder";
+import { getRoute } from "@/lib/routing/routes";
 
 export default function HomePage() {
-  return <Home />;
+  return <PagePlaceholder route={getRoute("index.html")!} />;
 }

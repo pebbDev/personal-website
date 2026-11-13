@@ -1,0 +1,223 @@
+/* Website-Clone capsule geometry, with approved Lucide and neutral identity substitutions. */
+.topnav {
+  position: fixed;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+.topnav__in {
+  pointer-events: auto;
+  margin: 0 auto;
+  width: calc(100% - 48px);
+  max-width: 1180px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: max-width 0.7s var(--ease);
+}
+.topnav.compact .topnav__in {
+  max-width: 640px;
+}
+.brand {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  border-radius: 999px;
+  color: var(--foreground);
+  font: 400 19px/1 var(--font-sub);
+  white-space: nowrap;
+  transition:
+    background-color 0.4s,
+    box-shadow 0.4s;
+}
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-right: -6px;
+  transition: transform 0.5s var(--ease);
+}
+.brand:hover .brand__mark {
+  transform: rotate(-8deg) scale(1.08);
+}
+.brand__name {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  opacity: 1;
+  padding-right: 10px;
+  transition:
+    max-width 0.6s var(--ease),
+    opacity 0.3s,
+    padding 0.6s;
+}
+.topnav.compact .brand {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px #ebebeb,
+    0 10px 24px -16px rgba(0, 0, 0, 0.35);
+}
+.topnav.compact .brand__mark {
+  margin-right: 0;
+}
+.topnav.compact .brand__name {
+  max-width: 0;
+  opacity: 0;
+  padding-right: 0;
+}
+.pill ul {
+  display: flex;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 5px;
+  border-radius: 999px;
+  background: #f3f3f3;
+  box-shadow:
+    0 0 0 1px #ebebeb,
+    0 10px 24px -18px rgba(0, 0, 0, 0.3);
+}
+.pill a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font: 400 15px/1 var(--font-sub);
+  color: #6b6b6b;
+  white-space: nowrap;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+.pill a:hover {
+  color: #111;
+}
+.pill a.active {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.pill svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pill a.active svg {
+  fill: currentColor;
+  fill-opacity: 0.12;
+}
+.sayhi {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 22px 0 16px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font: 400 16px/1 var(--font-sub);
+  white-space: nowrap;
+}
+.sayhi__hand {
+  display: inline-block;
+}
+.sayhi__text {
+  display: block;
+  max-width: 110px;
+  margin-left: 8px;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    max-width 0.6s var(--ease),
+    opacity 0.3s,
+    margin 0.6s;
+}
+.topnav.compact .sayhi {
+  padding: 0 15px;
+}
+.topnav.compact .sayhi__text {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+}
+@media (hover: hover) {
+  .brand:hover {
+    background: #fff;
+    box-shadow:
+      0 0 0 1px #ebebeb,
+      0 10px 24px -16px rgba(0, 0, 0, 0.35);
+  }
+  .brand:hover .brand__mark {
+    margin-right: 0;
+  }
+  .brand:hover .brand__name {
+    max-width: 0;
+    opacity: 0;
+    padding-right: 0;
+  }
+}
+@media (max-width: 900px) {
+  .topnav {
+    top: auto;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  .topnav__in {
+    width: calc(100% - 20px);
+    max-width: 312px !important;
+    justify-content: center;
+  }
+  .brand {
+    background: #fff;
+    box-shadow:
+      0 0 0 1px #ebebeb,
+      0 10px 24px -16px rgba(0, 0, 0, 0.35);
+  }
+  .brand__mark {
+    margin-right: 0;
+  }
+  .brand__name,
+  .sayhi__text {
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+    padding-right: 0;
+  }
+  .sayhi {
+    padding: 0 15px;
+  }
+  .pill a {
+    padding: 0 11px;
+    font-size: 13px;
+  }
+  .pill a span {
+    display: none;
+  }
+  .pill a.active span {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topnav__in,
+  .brand,
+  .brand__mark,
+  .brand__name,
+  .pill a,
+  .sayhi__text {
+    transition: none;
+  }
+  .brand:hover .brand__mark {
+    transform: none;
+  }
+}
