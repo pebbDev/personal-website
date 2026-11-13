@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 
 test("capsule navigation switches same-page hash previews instead of using routes", () => {
-  const navbar = readFileSync(new URL("../src/components/common/navbar/navbar.tsx", import.meta.url), "utf8");
+  const navbar = readFileSync(new URL("../src/components/layout/floating.tsx", import.meta.url), "utf8");
   for (const hash of ["#home", "#meet-me", "#work"]) {
     assert.ok(navbar.includes(`href: "${hash}"`), `missing ${hash}`);
   }
