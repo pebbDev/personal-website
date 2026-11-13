@@ -43,14 +43,12 @@ test("Meet Me and My Lab retain their existing placeholder titles and descriptio
   assert.match(view, /from "@\/lib\/preview-tab"/);
 });
 
-test("Home remains a server component with its temporary Home placeholder", () => {
+test("Home remains a server component composing the Home feature", () => {
   const home = readFileSync(new URL("../src/features/home/home.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(home, /use client|usePreviewTab|PreviewSwitch/);
-  assert.match(home, /<PagePlaceholder/);
-  assert.match(home, /title="Home"/);
-  assert.ok(
-    home.includes('description="This is the Home page. The reconstructed experience will be built section by section."')
-  );
+  assert.match(home, /<Hero\s*\/>/);
+  assert.match(home, /<Contact\s*\/>/);
+  assert.doesNotMatch(home, /PagePlaceholder/);
 });
 
 test("homepage route passes server Home into PreviewSwitch without owning preview or layout logic", () => {

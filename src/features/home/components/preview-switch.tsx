@@ -18,5 +18,9 @@ const previews = {
 export default function PreviewSwitch({ home }: Readonly<{ home: ReactNode }>) {
   const activeTab = usePreviewTab();
   if (activeTab === "home") return home;
-  return <PagePlaceholder {...previews[activeTab]} />;
+  return (
+    <div className="page-preview-frame">
+      <PagePlaceholder {...previews[activeTab]} />
+    </div>
+  );
 }
