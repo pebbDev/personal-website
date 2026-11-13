@@ -11,7 +11,7 @@ const links = [
   { href: "#work", label: "My Lab", Icon: FolderOpen },
 ] as const;
 
-export default function Navbar() {
+export default function Floating() {
   const activeTab = usePreviewTab();
   const [compact, setCompact] = useState(false);
 

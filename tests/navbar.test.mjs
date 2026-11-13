@@ -2,8 +2,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 
-const navbar = readFileSync(new URL("../src/components/common/navbar/navbar.tsx", import.meta.url), "utf8");
+const navbar = readFileSync(new URL("../src/components/layout/floating.tsx", import.meta.url), "utf8");
 const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+
+test("floating replaces the old navbar path instead of duplicating it", () => {
+  assert.equal(existsSync(new URL("../src/components/layout/floating.tsx", import.meta.url)), true);
+  assert.equal(existsSync(new URL("../src/components/common/navbar/navbar.tsx", import.meta.url)), false);
+});
 
 test("navbar preserves source labels with Lucide icons, without third-party images", () => {
   for (const label of ["Come In", "Meet Me", "My Lab"]) assert.ok(navbar.includes(label), label);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Navbar from "@/components/common/navbar/navbar";
+import Floating from "@/components/layout/floating";
 import ThemeProvider from "@/components/provider/theme-provider";
 import "./globals.css";
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <a href="#main-content" className="skip-link">
             Skip to content
           </a>
-          <Navbar />
+          <Floating />
           <main id="main-content" className="site-main">
             {children}
           </main>
