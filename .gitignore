@@ -27,3 +27,6 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-error.log*
 .claude
+
+# Local-only planning and Superpowers artifacts (never include in PR)
+/docs/superpowers/

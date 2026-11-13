@@ -1,22 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-test("registry has 25 unique source HTML routes and rejects unknown", async () => {
-  const { routePaths, getRoute, getActiveNavHref } = await import("../src/lib/routing/routes.ts");
-  assert.equal(routePaths.length, 25);
-  assert.equal(new Set(routePaths).size, 25);
-  for (const path of routePaths) {
-    assert.match(path, /^[a-z0-9-]+\.html$/);
-    assert.ok(getRoute(path), path);
+import { readFileSync } from "node:fs";
+
+test("capsule navigation switches same-page hash previews instead of using routes", () => {
+  const navbar = readFileSync(new URL("../src/components/common/navbar/navbar.tsx", import.meta.url), "utf8");
+  for (const hash of ["#home", "#meet-me", "#work"]) {
+    assert.ok(navbar.includes(`href: "${hash}"`), `missing ${hash}`);
   }
-  assert.equal(getRoute("index.html")?.title, "Home");
-  assert.equal(getRoute("meet-me.html")?.title, "Meet Me");
-  assert.equal(getRoute("work.html")?.title, "My Lab");
-  assert.equal(getRoute("unknown.html"), undefined);
-  assert.equal(getRoute("../index.html"), undefined);
-  assert.equal(getActiveNavHref("/"), "/index.html");
-  assert.equal(getActiveNavHref("/index.html"), "/index.html");
-  assert.equal(getActiveNavHref("/meet-me.html"), "/meet-me.html");
-  assert.equal(getActiveNavHref("/work.html"), "/work.html");
-  assert.equal(getActiveNavHref("/cekat-ai-website.html"), "/work.html");
-  assert.equal(getActiveNavHref("/unknown.html"), null);
+  assert.doesNotMatch(navbar, /from "next\/link"|usePathname|\.html/);
+});
+
+test("single page preview includes home, meet-me and work descriptions", () => {
+  const view = readFileSync(new URL("../src/features/home/home.tsx", import.meta.url), "utf8");
+  assert.match(view, /Home/);
+  assert.match(view, /Meet Me/);
+  assert.match(view, /My Lab/);
+  assert.match(view, /usePreviewTab/);
 });

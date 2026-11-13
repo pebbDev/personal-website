@@ -1,11 +1,14 @@
-import type { RouteRecord } from "@/lib/routing/routes";
+type PagePlaceholderProps = {
+  title: string;
+  description: string;
+};
 
-export default function PagePlaceholder({ route }: { readonly route: RouteRecord }) {
+export default function PagePlaceholder({ title, description }: PagePlaceholderProps) {
   return (
-    <article className="page-placeholder" aria-label={route.title}>
+    <article className="page-placeholder" aria-label={title}>
       <p className="page-placeholder__eyebrow">Personal Website · Page preview</p>
-      <h1>{route.title}</h1>
-      <p>{route.description}</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
     </article>
   );
 }

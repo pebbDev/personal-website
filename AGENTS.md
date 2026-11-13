@@ -68,6 +68,7 @@ Follow a feature-based Next.js App Router structure:
 - Confirm exact `.html` routing and content modeling in an approved task-specific plan, not by assumption.
 
 ### Superpowers Documentation
+> Owner override (13 Nov 2026): Superpowers planning artifacts are **local-only**, ignored by Git and must not be included in commits, pushes or pull requests. Workflow approval/evidence requirements still apply.
 - Store task-specific specs in `docs/superpowers/<issue-id>-<slug>/specs/`.
 - Store task-specific plans in `docs/superpowers/<issue-id>-<slug>/plans/`.
 - Use dated filenames, reference the Linear issue, and retain approved versions.
