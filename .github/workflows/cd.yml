@@ -1,0 +1,169 @@
+# Preview-only CD: main -> protected Vercel Preview 0. Never targets Production.
+# Deployment stays disabled until preview environment, credentials and content are approved.
+name: CD | Protected Vercel Preview from main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: protected-vercel-preview-main
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: ${{ github.ref == 'refs/heads/main' && vars.PREVIEW_CD_ENABLED == 'true' && vars.PREVIEW_CONTENT_APPROVED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      HUSKY: "0"
+    steps:
+      - name: Checkout exact main commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Quarantine public assets on ephemeral runner
+        run: node scripts/ci/preview-asset-gate.mjs prepare
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Unit and contract tests
+        run: pnpm test
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: Generate Next.js route types
+        run: pnpm exec next typegen
+
+      - name: TypeScript
+        run: pnpm typecheck
+
+      - name: Prettier
+        run: pnpm format:check
+
+      - name: Build verification (does not deploy Production)
+        run: pnpm build
+
+  preview:
+    needs: verify
+    if: ${{ github.ref == 'refs/heads/main' && vars.PREVIEW_CD_ENABLED == 'true' && vars.PREVIEW_CONTENT_APPROVED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: preview-deploy
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      HUSKY: "0"
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+    steps:
+      - name: Checkout verified main commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Quarantine public assets on ephemeral runner
+        run: node scripts/ci/preview-asset-gate.mjs prepare
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Validate deployment target and credentials
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" || { echo 'Missing protected VERCEL_TOKEN'; exit 1; }
+          test "$VERCEL_ORG_ID" = 'team_9k1zQIUlgcV3hNaBqW9EL3ON' || { echo 'Incorrect Vercel team'; exit 1; }
+          test "$VERCEL_PROJECT_ID" = 'prj_EtYBH7RYrHjuTD1sgkLyd8tKOujD' || { echo 'Incorrect Vercel Preview 0 project'; exit 1; }
+          test -n "$VERCEL_CLI_VERSION" || { echo 'Missing pinned Vercel CLI version'; exit 1; }
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || { echo 'Checked-out commit differs from trigger'; exit 1; }
+
+      - name: Verify Vercel Authentication BEFORE uploading any files
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: node scripts/ci/verify-vercel-auth.mjs
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+
+      - name: Pull Preview configuration only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview
+
+      - name: Verify CLI resolved exact project
+        shell: bash
+        run: |
+          node -e "const p=require('./.vercel/project.json');if(p.orgId!==process.env.VERCEL_ORG_ID||p.projectId!==process.env.VERCEL_PROJECT_ID){throw Error('Vercel project mismatch')}"
+
+      - name: Build Vercel Preview (no --prod)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build
+
+      - name: Verify sanitized prebuilt output before upload
+        run: node scripts/ci/preview-asset-gate.mjs verify
+
+      - name: Deploy Vercel Preview (no --prod)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(vercel deploy --prebuilt)"
+          DEPLOYMENT_URL="$url" node --input-type=module -e '
+            const u = new URL(process.env.DEPLOYMENT_URL);
+            if (u.protocol !== "https:" || !u.hostname.endsWith(".vercel.app")) {
+              throw new Error("Unexpected deployment URL");
+            }
+          '
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm unauthenticated access redirects to Vercel SSO
+        shell: bash
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          headers="$(curl --silent --show-error --head --max-time 20 "$DEPLOYMENT_URL")"
+          echo "$headers" | grep -qiE '^HTTP/[0-9.]+ 302'
+          echo "$headers" | grep -qi 'location: https://vercel.com/sso-api'
+          echo 'SSO protection verified for the Preview deployment.'
+          printf 'Preview commit: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Preview URL: %s\n' "$DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
