@@ -116,20 +116,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
-        run: |
-          node --input-type=module -e '
-            const { VERCEL_ORG_ID: org, VERCEL_PROJECT_ID: id, VERCEL_TOKEN: token } = process.env;
-            const url = "https://api.vercel.com/v9/projects/" + encodeURIComponent(id) +
-              "?teamId=" + encodeURIComponent(org);
-            const response = await fetch(url, { headers: { Authorization: "Bearer " + token } });
-            if (!response.ok) throw new Error("Cannot inspect Vercel project protection: HTTP " + response.status);
-            const project = await response.json();
-            if (project.id !== id || project.ssoProtection?.deploymentType !== "all" ||
-              project.ssoProtection?.enabled !== true) {
-              throw new Error("Vercel Authentication must protect ALL deployments before upload");
-            }
-            console.log("Vercel Authentication: all deployments protected.");
-          '
+        run: node scripts/ci/verify-vercel-auth.mjs
 
       - name: Install pinned Vercel CLI
         run: npm install --global "vercel@$VERCEL_CLI_VERSION"
