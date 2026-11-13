@@ -1,6 +1,15 @@
 #!/usr/bin/env node
 // PER-21: private Preview only. Never run the destructive preparation step on a developer checkout.
-import { lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import {
+  lstatSync,
+  statSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { createHash } from "node:crypto";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
@@ -63,6 +72,52 @@ function walk(root, relativePrefix = "") {
       files.push({ abs, rel: rel.replaceAll("\\", "/"), size: stat.size });
     }
   }
+  return files;
+}
+
+// Vercel may de-duplicate function bundles via symlinks within .vercel/output.
+// Follow only links whose final canonical target is inside the same artifact.
+// Keep walk() strict for source/public so quarantine never follows external links.
+function walkArtifact(root) {
+  const canonicalRoot = realpathSync(root);
+  const files = [];
+  const maxEntries = 100_000;
+  let inspectedEntries = 0;
+
+  function visit(path, relativePath, parentDirectories) {
+    inspectedEntries += 1;
+    assert(inspectedEntries <= maxEntries, "artifact has too many entries or symlink aliases");
+
+    const link = lstatSync(path);
+    let canonical;
+    try {
+      canonical = realpathSync(path);
+    } catch {
+      throw new Error("Preview asset gate: dangling or cyclic artifact symlink at " + (relativePath || "."));
+    }
+
+    assert(
+      isInside(canonicalRoot, canonical),
+      "artifact symlink escapes the prebuilt output at " + (relativePath || ".")
+    );
+
+    const item = link.isSymbolicLink() ? statSync(path) : link;
+    if (item.isDirectory()) {
+      assert(!parentDirectories.has(canonical), "artifact symlink cycle at " + (relativePath || "."));
+      const ancestors = new Set(parentDirectories);
+      ancestors.add(canonical);
+      for (const name of readdirSync(path).sort()) {
+        const child = join(path, name);
+        const childRel = relativePath ? relativePath + "/" + name : name;
+        visit(child, childRel, ancestors);
+      }
+    } else {
+      assert(item.isFile(), "artifact contains a non-regular file");
+      files.push({ abs: path, rel: relativePath.replaceAll("\\", "/"), size: item.size });
+    }
+  }
+
+  visit(root, "", new Set());
   return files;
 }
 
@@ -222,7 +277,7 @@ export function verifyArtifact(options) {
   }
 
   let scannedFiles = 0;
-  for (const file of walk(output)) {
+  for (const file of walkArtifact(output)) {
     const safePath = "/" + file.rel;
     assert(!/(?:^|\/)assets\//i.test(safePath), "forbidden legacy assets path in prebuilt output");
     const bytes = readFileSync(file.abs);
