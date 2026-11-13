@@ -178,6 +178,98 @@ test("verify accepts a sanitized v3 output without public assets", () => {
   }
 });
 
+test("verify scans safe internal Vercel function-directory symlink aliases", () => {
+  const f = fixture();
+  try {
+    prepare(f);
+    const output = validOutput(f);
+    const functions = join(output, "functions");
+    const original = join(functions, "source.func");
+    put(join(original, "index.js"), "export default () => 'neutral';");
+    symlinkSync(
+      process.platform === "win32" ? original : "source.func",
+      join(functions, "alias.func"),
+      process.platform === "win32" ? "junction" : "dir"
+    );
+    const result = verify(f);
+    assert.ok(result.scannedFiles >= 4, "both the source and alias file must be inspected");
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("verify rejects an internal symlink alias exposing a forbidden assets path", () => {
+  const f = fixture();
+  try {
+    prepare(f);
+    const output = validOutput(f);
+    const original = join(output, "static", "neutral");
+    put(join(original, "safe.txt"), "synthetic fixture");
+    symlinkSync(
+      process.platform === "win32" ? original : "neutral",
+      join(output, "static", "assets"),
+      process.platform === "win32" ? "junction" : "dir"
+    );
+    assert.throws(() => verify(f), /forbidden|assets|path/i);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("verify rejects internal symlink cycles without recursively looping", () => {
+  const f = fixture();
+  try {
+    prepare(f);
+    const output = validOutput(f);
+    const root = join(output, "functions");
+    put(join(root, "source.func", "index.js"), "ok");
+    symlinkSync(
+      process.platform === "win32" ? root : "..",
+      join(root, "source.func", "loop"),
+      process.platform === "win32" ? "junction" : "dir"
+    );
+    assert.throws(() => verify(f), /cycle|symlink|circular|loop/i);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("verify rejects a symlink to missing targets", () => {
+  const f = fixture();
+  try {
+    prepare(f);
+    const output = validOutput(f);
+    const target = join(output, "functions", "missing.func");
+    mkdirSync(join(output, "functions"), { recursive: true });
+    symlinkSync(
+      process.platform === "win32" ? target : "missing.func",
+      join(output, "functions", "alias.func"),
+      process.platform === "win32" ? "junction" : "dir"
+    );
+    assert.throws(() => verify(f), /dangling|symlink|missing|target/i);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test(
+  "verify resolves internal linked files and rejects legacy bytes under aliases",
+  { skip: process.platform === "win32" },
+  () => {
+    const f = fixture();
+    try {
+      put(join(f.workspace, "public", "assets", "secret.txt"), "synthetic secret");
+      prepare(f);
+      const output = validOutput(f);
+      put(join(output, "static", "neutral.bin"), "synthetic secret");
+      symlinkSync("neutral.bin", join(output, "static", "linked.bin"), "file");
+      assert.throws(() => verify(f), /copied|digest|forbidden|asset/i);
+    } finally {
+      f.cleanup();
+    }
+  }
+);
+
 test("verify fails on forbidden public assets path in static output", () => {
   const f = fixture();
   try {
