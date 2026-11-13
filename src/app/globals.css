@@ -450,3 +450,54 @@ a {
     padding-bottom: 120px;
   }
 }
+
+.toggle {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+.toggle + .toggle {
+  margin-top: 0;
+}
+.toggle summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  cursor: pointer;
+  list-style: none;
+  font: 400 16px/1.3 var(--font-sub);
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.toggle summary::-webkit-details-marker {
+  display: none;
+}
+.toggle summary::before {
+  content: "";
+  width: 0;
+  height: 0;
+  flex: 0 0 auto;
+  border-left: 6px solid currentColor;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+  opacity: 0.6;
+  transition: transform 0.25s var(--ease);
+}
+.toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+.toggle summary:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.toggle-body {
+  min-width: 0;
+  padding: 0 0 16px 18px;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle summary::before {
+    transition: none;
+  }
+}
