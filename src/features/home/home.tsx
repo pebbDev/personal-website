@@ -10,7 +10,7 @@ import Contact from "./sections/contact";
 
 export default function Home() {
   return (
-    <div className="home">
+    <div id="home" className="home">
       <Hero />
       <About />
       <Journey />

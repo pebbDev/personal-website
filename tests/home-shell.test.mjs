@@ -15,6 +15,13 @@ const sections = [
   ["contact", "Contact", "contact"],
 ];
 
+test("Home provides the global #home navigation target above the hero", () => {
+  const home = read("src/features/home/home.tsx");
+  const topLevel = home.match(/return\s*\(\s*<div\b([^>]*)>\s*<Hero\s*\/>/);
+  assert.ok(topLevel, "Home must start above the hero without adding another main");
+  assert.match(topLevel[1], /\bid="home"/, "global #home links need a native scroll target at the top of Home");
+});
+
 test("Home composes exactly eight source-mapped sections in source order", () => {
   const home = read("src/features/home/home.tsx");
   assert.deepEqual(
