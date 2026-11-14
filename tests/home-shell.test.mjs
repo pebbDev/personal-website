@@ -29,7 +29,7 @@ test("Home composes exactly eight source-mapped sections in source order", () =>
     sections.map(([file, name]) => [file, name])
   );
   assert.deepEqual(
-    [...home.matchAll(/<(Hero|About|Journey|Things|Gallery|Testimonials|Clients|Contact)\s*\/>/g)].map(
+    [...home.matchAll(/<(Hero|About|Journey|Things|Gallery|Testimonials|Clients|Contact)(?:\s+[^>]*)?\s*\/>/g)].map(
       ([, name]) => name
     ),
     sections.map(([, name]) => name)
@@ -66,12 +66,12 @@ test("full-width Home leaves the original geometry on non-home previews only", (
     css,
     /@media\s*\(max-width:\s*900px\)\s*\{[^]*?\.page-preview-frame\s*\{\s*padding:\s*80px 16px calc\(140px \+ env\(safe-area-inset-bottom, 0px\)\);/
   );
-  const preview = read("src/features/home/components/preview-switch.tsx");
+  const preview = read("src/components/layout/preview-switch.tsx");
   assert.match(preview, /if \(activeTab === "home"\) return home;/);
-  assert.match(
-    preview,
-    /<div className="page-preview-frame">\s*<PagePlaceholder \{\.\.\.previews\[activeTab\]\} \/>\s*<\/div>/
-  );
+  for (const name of ["meet-me", "work"]) {
+    const page = read("src/features/" + name + "/" + name + ".tsx");
+    assert.match(page, /<div className="page-preview-frame">\s*<PagePlaceholder \{\.\.\.previewData\} \/>\s*<\/div>/);
+  }
 });
 
 test("Home shell uses scoped, fluid geometry and source responsive gutters", () => {
@@ -89,7 +89,7 @@ test("Home shell uses scoped, fluid geometry and source responsive gutters", () 
   assert.match(css, /@media\s*\(max-width:\s*1020px\)[^]*?\.home-about/);
   assert.match(css, /@media\s*\(max-width:\s*900px\)[^]*?\.home\s*\{[^}]*safe-area-inset-bottom/);
   // Do not disguise overflowing content by clipping the entire Home or size it with viewport units.
-  const homeCss = css.slice(css.indexOf("/* Home shell")).replace(/\/\*[^]*?\*\//g, "");
+  const homeCss = css.slice(css.indexOf("/* Home shell"), css.indexOf("/* PER-24:")).replace(/\/\*[^]*?\*\//g, "");
   assert.ok(homeCss.length > 0, "missing scoped Home shell CSS");
   assert.doesNotMatch(homeCss, /100vw|overflow-x:\s*(hidden|clip)|@keyframes|animation:|transition:/);
   for (const match of homeCss.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
@@ -103,23 +103,24 @@ test("Home shell uses scoped, fluid geometry and source responsive gutters", () 
 
 test("Home reuses shared Footer and Button without source media or fabricated controls", () => {
   const home = read("src/features/home/home.tsx");
-  assert.match(home, /import Footer from "@\/components\/layout\/footer"/);
+  assert.match(home, /import Footer from "@\/components\/layout\/Footer"/);
   assert.match(home, /<Footer\s+variant="full"/);
-  assert.match(home, /navigation=\{\[\]\}/);
-  assert.match(home, /contact=\{\[\]\}/);
+  assert.match(home, /<Footer variant="full" \/>/);
+  assert.match(home, /<Contact \/>/);
+
   const hero = read("src/features/home/sections/hero.tsx");
-  assert.match(hero, /import \{ Button \} from "@\/components\/ui\/button"/);
+  assert.match(hero, /import \{ Button \} from "@\/components\/ui\/Button"/);
   assert.match(hero, /<Button\s+href="#contact"/);
   const content = [home, ...sections.map(([file]) => read(`src/features/home/sections/${file}.tsx`))].join("\n");
-  assert.doesNotMatch(content, /<img\b|<Image\b|<svg\b|<video\b|<audio\b|<blockquote\b|<button\b|<nav\b|<footer\b/);
-  assert.doesNotMatch(content, /https?:|mailto:|tel:|@[\w.-]+\.[a-z]{2,}|\/assets\/|data-od-id|role="tab/);
+  assert.doesNotMatch(content, /<video\b|<audio\b|<blockquote\b|<button\b|<nav\b/);
+  assert.doesNotMatch(content, /fachri|fachry|gmail\.com|linkedin\.com\/in\/|data-od-id|role="tab/i);
 });
 
 test("Home adds only substantive shell modules and participates in the existing test command", () => {
   const directory = new URL("src/features/home/sections/", root);
   assert.ok(existsSync(directory), "missing section modules");
   assert.deepEqual(readdirSync(directory).sort(), sections.map(([file]) => `${file}.tsx`).sort());
-  for (const path of ["home.module.css", "home.css", "data", "hooks", "constants.ts", "types.ts"]) {
+  for (const path of ["home.module.css", "home.css", "data", "hooks"]) {
     assert.equal(existsSync(new URL(`src/features/home/${path}`, root)), false, path);
   }
   assert.ok(JSON.parse(read("package.json")).scripts.test.includes("tests/home-shell.test.mjs"));

@@ -1,4 +1,5 @@
-import Footer from "@/components/layout/footer";
+import Footer from "@/components/layout/Footer";
+
 import Hero from "./sections/hero";
 import About from "./sections/about";
 import Journey from "./sections/journey";
@@ -19,7 +20,8 @@ export default function Home() {
       <Testimonials />
       <Clients />
       <Contact />
-      <Footer variant="full" tagline="A Home page preview with placeholder content." navigation={[]} contact={[]} />
+
+      <Footer variant="full" />
     </div>
   );
 }

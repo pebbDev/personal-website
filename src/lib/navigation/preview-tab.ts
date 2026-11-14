@@ -1,12 +1,14 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-
-export type PreviewTab = "home" | "meet-me" | "work";
+import { previewRoutes } from "./config";
+import type { PreviewTab } from "./types";
 
 function getSnapshot(): PreviewTab {
-  const hash = window.location.hash.slice(1);
-  return hash === "meet-me" || hash === "work" ? hash : "home";
+  const hash = window.location.hash;
+  if (hash === previewRoutes["meet-me"]) return "meet-me";
+  if (hash === previewRoutes.work) return "work";
+  return "home";
 }
 
 function subscribe(onChange: () => void) {

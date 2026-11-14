@@ -1,17 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CircleUserRound, FolderOpen, House, Smile } from "lucide-react";
-import { usePreviewTab } from "@/lib/preview-tab";
+import { CircleUserRound } from "lucide-react";
+import { navbarLinks } from "./constants";
+import { NavLink, usePreviewTab } from "@/lib/navigation";
 import ThemeToggle from "@/components/common/theme-toggle/theme-toggle";
 
-const links = [
-  { href: "#home", label: "Come In", Icon: House },
-  { href: "#meet-me", label: "Meet Me", Icon: Smile },
-  { href: "#work", label: "My Lab", Icon: FolderOpen },
-] as const;
-
-export default function Floating() {
+const Navbar = () => {
   const activeTab = usePreviewTab();
   const [compact, setCompact] = useState(false);
 
@@ -33,21 +28,17 @@ export default function Floating() {
         </a>
         <nav className="pill" aria-label="Main navigation">
           <ul>
-            {links.map(({ href, label, Icon }) => {
-              const active = href.slice(1) === activeTab;
-              return (
-                <li key={href}>
-                  <a href={href} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
-                    <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                    <span>{label}</span>
-                  </a>
-                </li>
-              );
-            })}
+            {navbarLinks.map((link) => (
+              <li key={link.id}>
+                <NavLink {...link} active={link.id === activeTab} />
+              </li>
+            ))}
           </ul>
         </nav>
         <ThemeToggle />
       </div>
     </header>
   );
-}
+};
+
+export default Navbar;

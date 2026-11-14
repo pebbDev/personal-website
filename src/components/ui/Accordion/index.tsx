@@ -1,12 +1,6 @@
-import type { ReactNode } from "react";
+import type { AccordionProps } from "./types";
 
-type AccordionProps = {
-  title: ReactNode;
-  children: ReactNode;
-  defaultOpen?: boolean;
-  className?: string;
-};
-
+export type { AccordionProps } from "./types";
 export default function Accordion({ title, children, defaultOpen, className }: AccordionProps) {
   return (
     <details className={className ? `toggle ${className}` : "toggle"} open={defaultOpen}>

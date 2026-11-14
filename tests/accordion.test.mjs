@@ -5,11 +5,13 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("Accordion uses native details and summary with feature-owned content", () => {
-  const source = read("../src/components/ui/accordion.tsx");
+  const source = read("../src/components/ui/Accordion/index.tsx");
+  const types = read("../src/components/ui/Accordion/types.ts");
   assert.match(source, /export default function Accordion/);
-  assert.match(source, /title: ReactNode/);
-  assert.match(source, /children: ReactNode/);
-  assert.match(source, /defaultOpen\?: boolean/);
+  assert.match(source, /import type \{ AccordionProps \} from "\.\/types"/);
+  assert.match(types, /title: ReactNode/);
+  assert.match(types, /children: ReactNode/);
+  assert.match(types, /defaultOpen\?: boolean/);
   assert.match(source, /<details\b/);
   assert.match(source, /<summary\b/);
   assert.match(source, /\{title\}/);

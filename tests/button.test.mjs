@@ -5,22 +5,28 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("Button exposes only the observed CTA variants and sizes", () => {
-  const component = read("../src/components/ui/button.tsx");
+  const component = read("../src/components/ui/Button/index.tsx");
+  const types = read("../src/components/ui/Button/types.ts");
+  const variants = read("../src/components/ui/Button/variants.ts");
   assert.match(component, /export function Button/);
   for (const variant of ['"base"', '"primary"', '"dark"', '"line"']) {
-    assert.ok(component.includes(variant), `missing variant ${variant}`);
+    assert.ok(types.includes(variant), `missing variant ${variant}`);
   }
   for (const size of ['"sm"', '"md"', '"lg"']) {
-    assert.ok(component.includes(size), `missing size ${size}`);
+    assert.ok(types.includes(size), `missing size ${size}`);
   }
-  assert.doesNotMatch(component, /shadcn|@radix|class-variance-authority|use client|next\/link/i);
+  assert.match(component, /import type \{ ButtonProps \} from "\.\/types"/);
+  assert.match(component, /getButtonClasses\(variant, size, className\)/);
+  assert.match(variants, /export function getButtonClasses/);
+  assert.doesNotMatch(component + variants, /shadcn|@radix|class-variance-authority|use client|next\/link/i);
 });
 
 test("Button uses real anchors for navigation and native buttons for actions", () => {
-  const component = read("../src/components/ui/button.tsx");
-  assert.match(component, /href:\s*string/);
-  assert.match(component, /href\?:\s*never/);
-  assert.match(component, /disabled\?:\s*never/);
+  const component = read("../src/components/ui/Button/index.tsx");
+  const types = read("../src/components/ui/Button/types.ts");
+  assert.match(types, /href:\s*string/);
+  assert.match(types, /href\?:\s*never/);
+  assert.match(types, /disabled\?:\s*never/);
   assert.match(component, /<a\b/);
   assert.match(component, /<button\b/);
   assert.match(component, /type=\{type\}/);
@@ -57,7 +63,7 @@ test("Button CSS supports focus, hover, disabled and reduced motion", () => {
 });
 
 test("Button stays free of source identity, CV and feature-specific tab/filter patterns", () => {
-  const component = read("../src/components/ui/button.tsx");
+  const component = read("../src/components/ui/Button/index.tsx");
   assert.doesNotMatch(component, /fachri|fachry|memoji|gmail\.com|linkedin\.com|\.ctab|\.chip|\.sayhi/i);
   assert.doesNotMatch(component, /<img\b|<Image\b/);
 });

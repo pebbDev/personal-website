@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
-test("App Router only exposes homepage: no HTML, slug, Meet Me or Work route folders", () => {
+test("App Router still exposes only homepage while previews have feature-owned modules", () => {
   const app = join(root, "src", "app");
   for (const name of ["meet-me", "work", "[slug]"]) {
     assert.equal(existsSync(join(app, name)), false, name);
@@ -20,8 +20,11 @@ test("App Router only exposes homepage: no HTML, slug, Meet Me or Work route fol
     []
   );
   assert.match(read("src/app/page.tsx"), /@\/features\/home\/home/);
-  assert.equal(existsSync(join(root, "src", "features", "meet-me")), false);
-  assert.equal(existsSync(join(root, "src", "features", "work")), false);
+  for (const feature of ["meet-me", "work"]) {
+    for (const file of [feature + ".tsx", "constants.ts", "types.ts"]) {
+      assert.ok(existsSync(join(root, "src", "features", feature, file)), feature + "/" + file);
+    }
+  }
 });
 
 test("configuration follows Vicky structure with Website-Clone visual tokens", () => {

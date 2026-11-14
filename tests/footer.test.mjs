@@ -1,39 +1,52 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("shared Footer declares two source-observed variants with caller-owned content", () => {
-  const footer = read("../src/components/layout/footer.tsx");
-  assert.match(footer, /export default function Footer/);
-  assert.match(footer, /variant: "full"/);
-  assert.match(footer, /variant: "compact"/);
-  assert.match(footer, /navigation: readonly FooterLink\[\]/);
-  assert.match(footer, /contact: readonly FooterLink\[\]/);
-  assert.match(footer, /<footer\b/);
-  assert.match(footer, /footer__card/);
-  assert.match(footer, /footer__grid/);
-  assert.match(footer, /footer__bottom/);
-  assert.match(footer, /Quick Links/);
-  assert.match(footer, /Get in Touch/);  assert.match(footer, /footer__grid--\$\{columnCount\}/);
-  assert.match(footer, /Number\(props\.navigation\.length > 0\)/);
-  assert.match(footer, /Number\(props\.contact\.length > 0\)/);
-});
+test("Footer follows Hammercode group data model and three-file architecture", () => {
+  const component = read("../src/components/layout/Footer/index.tsx");
+  const data = read("../src/components/layout/Footer/constants.ts");
+  const types = read("../src/components/layout/Footer/types.ts");
 
-test("shared Footer keeps source identity and closing CTA outside the component", () => {
-  const footer = read("../src/components/layout/footer.tsx");
-  assert.doesNotMatch(footer, /fachri|fachry|memoji\.png|gmail\.com|linkedin\.com\/in\//i);
-  assert.doesNotMatch(footer, /className="end"|className="footer-end"/);
-  assert.match(footer, /<a href=\{link\.href\}/);
-});
+  assert.equal(existsSync(new URL("../src/components/layout/footer.tsx", import.meta.url)), false);
 
-test("footer variant styles are scoped and responsive", () => {
-  const css = read("../src/app/globals.css");
-  for (const selector of [".footer--full", ".footer--compact", ".footer__card", ".footer__grid", ".footer__bottom"]) {
-    assert.ok(css.includes(selector), selector);
+  assert.match(component, /import \{ dataFooter, type FooterProps \} from "\.\/constants"/);
+  assert.doesNotMatch(component, /from "\.\/types"/);
+  assert.match(data, /export type \{ FooterProps \} from "\.\/types"/);
+  assert.match(component, /const Footer = \(props: FooterProps\) =>/);
+  assert.match(component, /const \{ brand, resource, contact, copyright \} = dataFooter/);
+  assert.match(component, /export default Footer/);
+  assert.match(data, /export const dataFooter: FooterType/);
+  for (const group of ["brand", "resource", "contact", "copyright"]) {
+    assert.ok(data.includes(`${group}: {`), group);
+    assert.ok(types.includes(`${group}: {`), group);
   }
-  assert.match(css, /\.footer__grid\s*\{[^}]*grid-template-columns:\s*1fr auto auto/s);
-  assert.match(css, /@media\s*\(max-width:\s*640px\)/);  assert.match(css, /\.footer__grid--1\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
-  assert.match(css, /\.footer__grid--2\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/s);
+  assert.doesNotMatch(component, /function FooterItem|<FooterItem|<svg|<path|<rect/);
+});
+
+test("Navigation and contact render source-faithful markup directly", () => {
+  const component = read("../src/components/layout/Footer/index.tsx");
+  const constants = read("../src/components/layout/Footer/constants.ts");
+  assert.match(component, /resource\.data\.map/);
+  assert.match(component, /contact\.data\.map/);
+  assert.match(component, /<Link href=\{data\.navigate_url\}>\{data\.name\}<\/Link>/);
+  assert.match(component, /data\.navigate_url \?/);
+  assert.match(component, /<span className="footer__inactive">/);
+  assert.match(component, /rel=\{data\.navigate_url\.startsWith\("https:\/\/"\) \? "noopener noreferrer"/);
+  assert.match(component, /footer__icon/);
+  assert.match(constants, /from "lucide-react"/);
+  for (const name of ["Mail", "ContactRound", "Camera"]) assert.ok(constants.includes(name));
+  assert.doesNotMatch(component + constants, /fachri|fachry|memoji\.png|gmail\.com/i);
+});
+
+test("Footer retains original classes, compact variant and responsive styling", () => {
+  const component = read("../src/components/layout/Footer/index.tsx");
+  const css = read("../src/app/globals.css");
+  for (const selector of ["footer--full", "footer--compact", "footer__card", "footer__grid", "footer__bottom"]) {
+    assert.ok(component.includes(selector), selector);
+    assert.ok(css.includes(`.${selector}`), selector);
+  }
+  assert.match(component, /props\.variant === "compact"/);
+  assert.match(css, /@media\s*\(max-width:\s*640px\)/);
 });
