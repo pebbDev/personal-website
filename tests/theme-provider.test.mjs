@@ -29,7 +29,7 @@ test("approved provider has centralized class theme config in root layout", () =
 test("toggle is independent from Navbar and delegates to next-themes", () => {
   assert.ok(existsSync(togglePath), "dedicated theme toggle must exist");
   const toggle = read("../src/components/common/theme-toggle/theme-toggle.tsx");
-  const nav = read("../src/components/layout/floating.tsx");
+  const nav = read("../src/components/layout/Navbar/index.tsx");
   assert.match(toggle, /useTheme/);
   assert.match(toggle, /setTheme/);
   assert.match(toggle, /useSyncExternalStore/);

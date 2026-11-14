@@ -30,3 +30,7 @@ yarn-error.log*
 
 # Local-only planning and Superpowers artifacts (never include in PR)
 /docs/superpowers/
+# Private third-party avatar used only for local fidelity QA
+/public/assets/memoji.png
+/public/assets/per24-private-fonts.css
+/public/assets/per24-private-fonts/

@@ -2,18 +2,35 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 
-const navbar = readFileSync(new URL("../src/components/layout/floating.tsx", import.meta.url), "utf8");
+const navbar = readFileSync(new URL("../src/components/layout/Navbar/index.tsx", import.meta.url), "utf8");
+const navLink = readFileSync(new URL("../src/lib/navigation/NavLink.tsx", import.meta.url), "utf8");
+const constants = readFileSync(new URL("../src/components/layout/Navbar/constants.ts", import.meta.url), "utf8");
+const types = readFileSync(new URL("../src/components/layout/Navbar/types.ts", import.meta.url), "utf8");
 const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 
-test("floating replaces the old navbar path instead of duplicating it", () => {
-  assert.equal(existsSync(new URL("../src/components/layout/floating.tsx", import.meta.url)), true);
+test("Navbar delegates NavLink to shared navigation module without duplicated floating", () => {
+  assert.equal(existsSync(new URL("../src/components/layout/floating.tsx", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../src/components/layout/Navbar/index.tsx", import.meta.url)), true);
+  assert.equal(existsSync(new URL("../src/components/layout/Navbar/constants.ts", import.meta.url)), true);
+  assert.equal(existsSync(new URL("../src/components/layout/Navbar/types.ts", import.meta.url)), true);
+  assert.match(types, /export type NavbarLink/);
+  assert.match(constants, /export const navbarLinks: NavbarLink\[\]/);
+  assert.match(navbar, /navbarLinks\.map/);
+  assert.match(navbar, /import \{ NavLink, usePreviewTab \} from "@\/lib\/navigation"/);
+  assert.equal(existsSync(new URL("../src/components/layout/Navbar/NavLink.tsx", import.meta.url)), false);
+  assert.ok(navbar.includes("<NavLink {...link} active={link.id === activeTab} />"));
+  assert.match(readFileSync(new URL("../src/lib/navigation/types.ts", import.meta.url), "utf8"), /active: boolean/);
+  assert.ok(navLink.includes('import type { NavLinkProps } from "./types"'));
+  assert.doesNotMatch(navLink, /usePreviewTab|usePathname|useEffect|useState/);
   assert.equal(existsSync(new URL("../src/components/common/navbar/navbar.tsx", import.meta.url)), false);
 });
 
 test("navbar preserves source labels with Lucide icons, without third-party images", () => {
-  for (const label of ["Come In", "Meet Me", "My Lab"]) assert.ok(navbar.includes(label), label);
+  for (const label of ["Come In", "Meet Me", "My Lab"]) assert.ok(constants.includes(label), label);
   assert.match(navbar, /from ["']lucide-react["']/);
-  assert.match(navbar, /aria-current/);
+  assert.match(navLink, /aria-current=/);
+  assert.ok(navLink.includes('className={active ? "active" : undefined}'));
+  assert.ok(navLink.includes('<Icon size={18} strokeWidth={1.8} aria-hidden="true" />'));
   assert.doesNotMatch(navbar, /<img|<Image|memoji\.png|character\.png/i);
 });
 
