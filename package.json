@@ -12,6 +12,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test tests/hero-orbit.test.mjs",
+    "test:browser": "node --test tests/home-browser.test.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
