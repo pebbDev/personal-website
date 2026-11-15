@@ -52,6 +52,77 @@ test("Home Hero orbit in real Chrome", { timeout: 120000 }, async (t) => {
       assert.ok(fade.background.includes("linear-gradient"));
       assert.ok(dom.copyZ > fade.z);
     });
+
+    const initialDark = await evaluate(`document.documentElement.classList.contains('dark')`);
+    const contrastSamples = [];
+    try {
+      for (const theme of ["light", "dark"]) {
+        if ((await evaluate(`document.documentElement.classList.contains('dark')`)) !== (theme === "dark")) {
+          await evaluate(`document.querySelector('.theme-toggle').click()`);
+        }
+        await eventually(
+          () => evaluate(`document.documentElement.classList.contains('dark')`),
+          (dark) => dark === (theme === "dark"),
+          `Theme did not become ${theme}`
+        );
+        for (const width of [390, 1440]) {
+          await resize(width);
+          for (const state of ["rest", "word-0", "word-1"]) {
+            const point = await evaluate(`(() => {
+              const word = document.querySelectorAll('.home-hero-word')[${state === "word-1" ? 1 : 0}];
+              const rect = word.getBoundingClientRect();
+              return ${state === "rest" ? "{ x: 1, y: 1 }" : "{ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }"};
+            })()`);
+            await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...point });
+            const sample = await evaluate(`(() => {
+              const title = document.querySelector('.home-hero-title');
+              const canvas = document.createElement('canvas');
+              canvas.width = canvas.height = 1;
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              const rgb = color => {
+                ctx.clearRect(0, 0, 1, 1);
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 1, 1);
+                return Array.from(ctx.getImageData(0, 0, 1, 1).data).slice(0, 3);
+              };
+              const luminance = channels => channels.map(c => {
+                const s = c / 255;
+                return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
+              }).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+              const background = rgb(getComputedStyle(document.body).backgroundColor);
+              const bg = luminance(background);
+              return {
+                fontSize: parseFloat(getComputedStyle(title).fontSize),
+                background,
+                words: Array.from(title.querySelectorAll('.home-hero-word'), word => {
+                  const foreground = rgb(getComputedStyle(word).color);
+                  const fg = luminance(foreground);
+                  return { foreground, contrast: (Math.max(fg, bg) + .05) / (Math.min(fg, bg) + .05), hovered: word.matches(':hover') };
+                }),
+              };
+            })()`);
+            contrastSamples.push({ theme, width, state, ...sample });
+            t.diagnostic(`heading contrast ${JSON.stringify(contrastSamples.at(-1))}`);
+          }
+        }
+      }
+    } finally {
+      await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 });
+      if ((await evaluate(`document.documentElement.classList.contains('dark')`)) !== initialDark) {
+        await evaluate(`document.querySelector('.theme-toggle').click()`);
+      }
+      await resize(1440);
+    }
+    for (const { theme, width, state, fontSize, words } of contrastSamples) {
+      assert.ok(fontSize >= 24, `Large-text threshold at ${width}`);
+      words.forEach(({ contrast, hovered }, index) => {
+        assert.equal(hovered, state === `word-${index}`, `Actual hover state at ${theme}/${width}/${state}`);
+        assert.ok(
+          contrast >= 3,
+          `Heading contrast ${contrast.toFixed(4)}:1 at ${theme}/${width}/${state}/word-${index}; requires >=3:1`
+        );
+      });
+    }
   });
 
   await t.test("source geometry, aspect and CSS inclusivity survive viewport resizing without overflow", async () => {

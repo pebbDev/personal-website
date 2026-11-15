@@ -50,30 +50,42 @@ export async function openBrowser(t) {
   let output = "";
   const pending = new Map();
   t.after(async () => {
-    socket?.close();
-    for (const { reject, timer } of pending.values()) {
-      clearTimeout(timer);
-      reject(new Error("CDP session closed"));
+    try {
+      try {
+        socket?.close();
+        for (const { reject, timer } of pending.values()) {
+          clearTimeout(timer);
+          reject(new Error("CDP session closed"));
+        }
+      } finally {
+        try {
+          await stop(chrome);
+        } finally {
+          await stop(server);
+        }
+      }
+    } finally {
+      try {
+        if (dirname(profile) !== resolve(tmpdir()) || !basename(profile).startsWith("per15-chrome-")) {
+          throw new Error("Refusing to remove an unexpected Chrome profile path");
+        }
+        await rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+      } finally {
+        // Even failed startup/cleanup must remove only the sampled generated
+        // suffix. An owner edit to either the contract or suffix prevents a write.
+        const currentContract = await readFile("AGENTS.md", "utf8");
+        const prefix = agentContract.trimEnd();
+        if (
+          !agentContract.includes("<!-- BEGIN:nextjs-agent-rules -->") &&
+          currentContract === generatedContract &&
+          currentContract.startsWith(prefix) &&
+          /^\s*<!-- BEGIN:nextjs-agent-rules -->[\s\S]*<!-- END:nextjs-agent-rules -->\s*$/.test(
+            currentContract.slice(prefix.length)
+          )
+        )
+          await writeFile("AGENTS.md", agentContract);
+      }
     }
-    await stop(chrome);
-    await stop(server);
-    if (dirname(profile) !== resolve(tmpdir()) || !basename(profile).startsWith("per15-chrome-")) {
-      throw new Error("Refusing to remove an unexpected Chrome profile path");
-    }
-    await rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-    // next dev appends its docs pointer. Remove only that generated suffix;
-    // preserve the owner's exact contract and any concurrent edits.
-    const currentContract = await readFile("AGENTS.md", "utf8");
-    const prefix = agentContract.trimEnd();
-    if (
-      !agentContract.includes("<!-- BEGIN:nextjs-agent-rules -->") &&
-      currentContract === generatedContract &&
-      currentContract.startsWith(prefix) &&
-      /^\s*<!-- BEGIN:nextjs-agent-rules -->[\s\S]*<!-- END:nextjs-agent-rules -->\s*$/.test(
-        currentContract.slice(prefix.length)
-      )
-    )
-      await writeFile("AGENTS.md", agentContract);
   });
   const launch = (command, args) => {
     const child = spawn(command, args, { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
@@ -96,19 +108,23 @@ export async function openBrowser(t) {
     "--port",
     String(port),
   ]);
-  await eventually(
-    async () => {
-      try {
-        return (await fetch(url)).status;
-      } catch {
-        return output;
-      }
-    },
-    (value) => value === 200,
-    "Local Next server unavailable",
-    60000
-  );
-  generatedContract = await readFile("AGENTS.md", "utf8");
+  try {
+    await eventually(
+      async () => {
+        try {
+          return (await fetch(url)).status;
+        } catch {
+          return output;
+        }
+      },
+      (value) => value === 200,
+      "Local Next server unavailable",
+      60000
+    );
+  } finally {
+    // Next can append its footer before the server becomes healthy.
+    generatedContract = await readFile("AGENTS.md", "utf8");
+  }
 
   const executable =
     process.env.CHROME_PATH ||
