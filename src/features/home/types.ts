@@ -40,3 +40,16 @@ export type JourneyContent = {
   resumeAction: { label: string; href?: string };
   experiences: readonly JourneyExperience[];
 };
+export type FeaturedPhotoSlot = Readonly<{
+  position: 1 | 2 | 3 | 4;
+  src?: string;
+  alt?: string;
+}>;
+
+export type FeaturedProject = Readonly<{
+  id: string;
+  title: string;
+  category: string;
+  href?: string;
+  photos: readonly [FeaturedPhotoSlot, FeaturedPhotoSlot, FeaturedPhotoSlot, FeaturedPhotoSlot];
+}>;

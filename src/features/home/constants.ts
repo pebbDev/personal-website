@@ -1,4 +1,4 @@
-import type { AboutContent, ContactCta, JourneyContent } from "./types";
+import type { AboutContent, ContactCta, FeaturedProject, JourneyContent } from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
 import { previewRoutes } from "../../lib/navigation/config.ts";
 
@@ -60,6 +60,23 @@ export const journeyContent: JourneyContent = {
     },
   ],
 };
+
+export const featuredProjects: readonly FeaturedProject[] = [
+  {
+    id: "featured-project-01",
+    title: "Featured Project 01",
+    category: "Website project",
+    href: previewRoutes.work,
+    photos: [{ position: 1 }, { position: 4 }, { position: 2 }, { position: 3 }],
+  },
+  {
+    id: "featured-project-02",
+    title: "Featured Project 02",
+    category: "Brand project",
+    href: previewRoutes.work,
+    photos: [{ position: 1 }, { position: 4 }, { position: 2 }, { position: 3 }],
+  },
+];
 
 export const contactCta: ContactCta = {
   eyebrow: "Contact",

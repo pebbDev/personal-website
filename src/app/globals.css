@@ -1128,24 +1128,218 @@ a.home-journey-resume:focus-visible svg {
 .home-words {
   text-align: center;
 }
-.home-projects {
+.home-things-head {
+  max-width: 620px;
+  margin: 0 auto 56px;
+}
+.home-things-head .home-copy {
+  max-width: none;
+  margin: 14px auto 0;
+}
+.home-things-folders {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  margin-top: 56px;
+  gap: 56px 40px;
+  max-width: 960px;
+  margin: 0 auto;
 }
-.home-project-placeholder {
-  min-height: 240px;
+.home-things-folder-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 40px;
+  border-radius: var(--radius);
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+.home-things-folder-item:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+.home-things-folder {
+  --folder-back: #ececec;
+  --folder-front: #fafafa;
+  --folder-edge: #e0e0e0;
+  --folder-line: #ececec;
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 10 / 7;
+  margin-bottom: 18px;
+}
+.home-things-folder::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -7%;
+  height: 14%;
+  z-index: 0;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.08), transparent);
+}
+.home-things-folder-back {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  fill: var(--folder-back);
+}
+.home-things-photo {
+  position: absolute;
+  z-index: 2;
+  width: 30%;
+  aspect-ratio: 3 / 4;
+  left: var(--photo-left);
+  top: var(--photo-top);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(11, 21, 51, 0.08),
+    0 10px 22px -10px rgba(11, 21, 51, 0.35);
+  transform: translate(0, 0);
+  transition: transform 0.55s cubic-bezier(0.34, 1.45, 0.5, 1);
+  transition-delay: var(--photo-delay, 0s);
+}
+.home-things-photo-placeholder {
+  position: absolute;
+  inset: 6%;
   display: grid;
   place-items: center;
-  padding: 24px;
-  border-radius: var(--radius);
-  background: var(--surface-subtle);
+  border-radius: 2px;
+  background: linear-gradient(135deg, #dadada, #f1f1f1);
+  color: #777;
+  font: 500 12px/1 var(--font-sub);
 }
-.home-project-placeholder h3 {
+.home-things-photo--p1 {
+  --photo-left: 6%;
+  --photo-top: 16%;
+  --photo-x: -18%;
+  --photo-y: -20%;
+  --photo-rotation: -20deg;
+}
+.home-things-photo--p2 {
+  --photo-left: 25%;
+  --photo-top: -5%;
+  --photo-x: -5%;
+  --photo-y: -26%;
+  --photo-rotation: -8deg;
+  --photo-delay: 0.04s;
+  z-index: 3;
+}
+.home-things-photo--p3 {
+  --photo-left: 45%;
+  --photo-top: -1%;
+  --photo-x: 5%;
+  --photo-y: -23%;
+  --photo-rotation: 9deg;
+  --photo-delay: 0.08s;
+  z-index: 3;
+}
+.home-things-photo--p4 {
+  --photo-left: 64%;
+  --photo-top: 13%;
+  --photo-x: 18%;
+  --photo-y: -18%;
+  --photo-rotation: 20deg;
+  --photo-delay: 0.12s;
+}
+.home-things-folder-item:hover .home-things-photo,
+.home-things-folder-item:focus-visible .home-things-photo {
+  transform: translate(var(--photo-x), var(--photo-y)) rotate(var(--photo-rotation));
+}
+.home-things-folder-front {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  /* Gentle face shading adds depth without changing the source folder silhouette. */
+  background: linear-gradient(180deg, #ffffff 0%, var(--folder-front) 48%, #f4f4f4 100%);
+  filter: drop-shadow(0 3px 3px rgba(18, 25, 39, 0.07));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 70' preserveAspectRatio='none'%3E%3Cpath d='M0,16%20Q0,14%202,14%20L42,14%20Q44,14%2045.5,15.5%20L50,20.5%20Q51,22%2053,22%20L98,22%20Q100,22%20100,24%20L100,68%20Q100,70%2098,70%20L2,70%20Q0,70%200,68%20Z'/%3E%3C/svg%3E")
+    0 0/100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 70' preserveAspectRatio='none'%3E%3Cpath d='M0,16%20Q0,14%202,14%20L42,14%20Q44,14%2045.5,15.5%20L50,20.5%20Q51,22%2053,22%20L98,22%20Q100,22%20100,24%20L100,68%20Q100,70%2098,70%20L2,70%20Q0,70%200,68%20Z'/%3E%3C/svg%3E")
+    0 0/100% 100% no-repeat;
+  transform-origin: 50% 100%;
+  transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1);
+}
+.home-things-folder-front svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--folder-edge);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+.home-things-folder-front svg path {
+  vector-effect: non-scaling-stroke;
+}
+.home-things-folder-front::after {
+  content: "";
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 9%;
+  height: 3.5%;
+  border-top: 1px solid var(--folder-line);
+  border-bottom: 1px solid var(--folder-line);
+}
+.home-things-folder-item:hover .home-things-folder-front,
+.home-things-folder-item:focus-visible .home-things-folder-front {
+  transform: perspective(900px) rotateX(-9deg);
+}
+.home-things-title {
   margin: 0;
-  font: 400 21px/1.3 var(--font-sub);
+  font: 400 22px/1.25 var(--font-sub);
 }
+.home-things-badge {
+  flex: none;
+  transition:
+    background-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
+}
+.home-things-badge:hover,
+.home-things-folder-item:focus-visible .home-things-badge {
+  background: #e8e8e8;
+  transform: translateY(-2px);
+}
+@media (max-width: 640px) {
+  .home-things-folders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-things-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-things-badge {
+    transition: none !important;
+  }
+  .home-things-badge:hover,
+  .home-things-folder-item:focus-visible .home-things-badge {
+    transform: none !important;
+  }
+  .home-things-photo,
+  .home-things-folder-front {
+    transition: none;
+  }
+  .home-things-folder-item:hover .home-things-photo,
+  .home-things-folder-item:focus-visible .home-things-photo,
+  .home-things-folder-item:hover .home-things-folder-front,
+  .home-things-folder-item:focus-visible .home-things-folder-front {
+    transform: none;
+  }
+}
+
 .home-words {
   background: var(--surface-subtle);
 }
@@ -1195,8 +1389,7 @@ a.home-journey-resume:focus-visible svg {
   .home-hero {
     min-height: 600px;
   }
-  .home-about-grid,
-  .home-projects {
+  .home-about-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .home-about-grid .home-about-portrait {
