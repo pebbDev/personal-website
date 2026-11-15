@@ -1,5 +1,20 @@
-import type { ContactCta } from "./types";
+import type { AboutContent, ContactCta } from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
+import { previewRoutes } from "../../lib/navigation/config.ts";
+export const aboutContent: AboutContent = {
+  eyebrow: "Meet me",
+  heading: "A Bit About Me",
+  description: "A space to share how design, product thinking, and collaboration come together.",
+  primaryCta: { label: "Take a Closer Look", href: previewRoutes["meet-me"] },
+  resumeCta: { label: "Me in docs" },
+  portrait: { captionName: "Profile preview", captionRole: "Content pending review" },
+  contacts: [
+    { id: "email", label: "Email", value: "Available after review" },
+    { id: "professional", label: "Professional profile", value: "Available after review" },
+    { id: "social", label: "Social profile", value: "Available after review" },
+  ],
+};
+
 export const contactCta: ContactCta = {
   eyebrow: "Contact",
   headline: "A place to connect.",
