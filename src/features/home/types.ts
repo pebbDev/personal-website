@@ -22,3 +22,21 @@ export type AboutContent = {
   portrait: { src?: string; alt?: string; captionName: string; captionRole: string };
   contacts: readonly AboutContactItem[];
 };
+
+export type JourneyExperience = {
+  id: string;
+  organizationLabel: string;
+  periodLabel: string;
+  roleLabel: string;
+  skills: readonly string[];
+  logo?: { src: string; alt: string; wide?: boolean };
+};
+
+export type JourneyContent = {
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  aboutAction: { label: string; href: string };
+  resumeAction: { label: string; href?: string };
+  experiences: readonly JourneyExperience[];
+};

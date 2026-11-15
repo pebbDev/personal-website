@@ -846,12 +846,279 @@ a.home-about-contact-pill:hover {
   }
 }
 .home-journey {
-  background: var(--surface-dark);
-  color: var(--on-dark);
+  --journey-text: #ededed;
+  --journey-muted: #a3a3a3;
+  --journey-line: #333333;
+  --journey-tag-bg: #2a2a2a;
+  --journey-tag-hover: #343434;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #111111;
+  color: var(--journey-text);
+}
+.home-journey::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.34) 1.2px, transparent 1.8px);
+  background-size: 12px 12px;
+  -webkit-mask-image: radial-gradient(
+    ellipse farthest-corner at 50% 50%,
+    transparent 32%,
+    rgba(0, 0, 0, 0.35) 58%,
+    #000 100%
+  );
+  mask-image: radial-gradient(ellipse farthest-corner at 50% 50%, transparent 32%, rgba(0, 0, 0, 0.35) 58%, #000 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 50%;
+  mask-position: 50% 50%;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  animation:
+    home-journey-flow 16s linear infinite,
+    home-journey-breathe 14s linear infinite alternate;
+}
+@keyframes home-journey-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 120px -120px;
+  }
+}
+@keyframes home-journey-breathe {
+  from {
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+  to {
+    -webkit-mask-size: 135% 135%;
+    mask-size: 135% 135%;
+  }
 }
 .home-journey .home-eyebrow,
 .home-journey .home-copy {
-  color: #a3a3a3;
+  color: var(--journey-muted);
+}
+.home-journey-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.home-journey-head .home-copy {
+  margin-top: 12px;
+}
+.home-journey-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.home-journey-go {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--journey-text);
+  text-decoration: none;
+}
+.home-journey-go {
+  transition: gap 0.5s var(--ease);
+}
+a.home-journey-go::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 26px;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease);
+}
+.home-journey-go svg {
+  transition: transform 0.5s var(--ease);
+}
+a.home-journey-go:hover,
+a.home-journey-go:focus-visible {
+  gap: 10px;
+}
+a.home-journey-go:hover::after,
+a.home-journey-go:focus-visible::after {
+  transform: scaleX(1);
+}
+a.home-journey-go:hover svg,
+a.home-journey-go:focus-visible svg {
+  transform: translate(2px, -2px);
+}
+a.home-journey-resume:hover svg,
+a.home-journey-resume:focus-visible svg {
+  transform: translateY(2px);
+}
+.home-journey-resume--inactive {
+  cursor: default;
+}
+.home-journey-experiences {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--journey-line);
+  border-bottom: 1px solid var(--journey-line);
+}
+.home-journey-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 24px;
+  align-items: center;
+  padding: 24px 0;
+}
+.home-journey-entry + .home-journey-entry::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--journey-line);
+}
+.home-journey-logo {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font: 600 15px/1 var(--font-sub);
+}
+.home-journey-org {
+  transition: transform 0.3s var(--ease);
+}
+.home-journey-entry:hover .home-journey-logo {
+  transform: scale(1.06);
+}
+.home-journey-org {
+  min-width: 0;
+}
+.home-journey-org-name {
+  margin: 0;
+  font: 400 20px/1.25 var(--font-sub);
+  color: var(--journey-text);
+}
+.home-journey-period,
+.home-journey-role {
+  margin: 0;
+  color: var(--journey-muted);
+  font-size: 15px;
+}
+.home-journey-period {
+  margin-top: 2px;
+}
+.home-journey-role {
+  min-width: 0;
+  line-height: 1.5;
+}
+.home-journey-tags {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.home-journey-tag {
+  display: inline-flex;
+  max-width: 100%;
+  border-radius: 999px;
+  background: var(--journey-tag-bg);
+  color: #cfcfcf;
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.home-journey-tag {
+  transition:
+    background-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
+}
+.home-journey-tag:hover {
+  background: var(--journey-tag-hover);
+  transform: translateY(-2px);
+}
+.home-journey a:focus-visible {
+  outline-color: var(--journey-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-journey::before {
+    animation: none;
+  }
+  .home-journey-logo,
+  .home-journey-tag,
+  .home-journey-go,
+  .home-journey-go::after,
+  .home-journey-go svg {
+    transition: none;
+  }
+  .home-journey-entry:hover .home-journey-logo,
+  .home-journey-tag:hover,
+  a.home-journey-go:hover svg {
+    transform: none;
+  }
+}
+#journey.home-journey-observer-unavailable .home-journey-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-journey-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+@media (max-width: 1020px) {
+  .home-journey-entry {
+    grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .home-journey-tags {
+    grid-column: 2 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .home-journey-experiences {
+    padding: 4px;
+  }
+  .home-journey-entry {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px 0;
+  }
+  .home-journey-logo {
+    width: 44px;
+    height: 44px;
+    font-size: 13px;
+  }
+  .home-journey-role,
+  .home-journey-tags {
+    grid-column: 2;
+  }
 }
 .home-things,
 .home-gallery,

@@ -1,6 +1,7 @@
-import type { AboutContent, ContactCta } from "./types";
+import type { AboutContent, ContactCta, JourneyContent } from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
 import { previewRoutes } from "../../lib/navigation/config.ts";
+
 export const aboutContent: AboutContent = {
   eyebrow: "Meet me",
   heading: "A Bit About Me",
@@ -12,6 +13,51 @@ export const aboutContent: AboutContent = {
     { id: "email", label: "Email", value: "Available after review" },
     { id: "professional", label: "Professional profile", value: "Available after review" },
     { id: "social", label: "Social profile", value: "Available after review" },
+  ],
+};
+
+export const journeyContent: JourneyContent = {
+  eyebrow: "Roller Coaster My Experiences",
+  heading: "Where I’ve Been",
+  lead: "Different industries, one way of designing.",
+  aboutAction: { label: "More about me", href: previewRoutes["meet-me"] },
+  resumeAction: { label: "Full Resume" },
+  experiences: [
+    {
+      id: "experience-01",
+      organizationLabel: "Experience 01",
+      periodLabel: "Period pending review",
+      roleLabel: "Role pending review",
+      skills: ["Practice area 01", "Practice area 02", "Practice area 03", "Practice area 04", "Practice area 05"],
+    },
+    {
+      id: "experience-02",
+      organizationLabel: "Experience 02",
+      periodLabel: "Period pending review",
+      roleLabel: "Role pending review",
+      skills: ["Practice area 06", "Practice area 07", "Practice area 08", "Practice area 09", "Practice area 10"],
+    },
+    {
+      id: "experience-03",
+      organizationLabel: "Experience 03",
+      periodLabel: "Period pending review",
+      roleLabel: "Role pending review",
+      skills: ["Practice area 11", "Practice area 12", "Practice area 13", "Practice area 14"],
+    },
+    {
+      id: "experience-04",
+      organizationLabel: "Experience 04",
+      periodLabel: "Period pending review",
+      roleLabel: "Role pending review",
+      skills: ["Practice area 15", "Practice area 16"],
+    },
+    {
+      id: "experience-05",
+      organizationLabel: "Experience 05",
+      periodLabel: "Period pending review",
+      roleLabel: "Role pending review",
+      skills: ["Practice area 17", "Practice area 18", "Practice area 19", "Practice area 20", "Practice area 21"],
+    },
   ],
 };
 
