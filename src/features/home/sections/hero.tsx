@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/Button";
-import OrbitRing from "../components/orbit-ring";
+import HoverLift from "../components/HoverLift";
+import OrbitRing from "../components/OrbitRing";
 import { orbitCards } from "../constants";
+import { sectionRoutes } from "@/lib/navigation";
 
 export default function Hero() {
   return (
@@ -11,12 +13,12 @@ export default function Hero() {
       <span className="home-hero-fade home-hero-fade--bottom" aria-hidden="true" />
       <div className="home-hero-copy">
         <h1 id="hero-heading" className="home-hero-title">
-          <span className="home-hero-word">A space for ideas</span>
+          <HoverLift className="home-hero-word">A space for ideas</HoverLift>
           <br />
-          <span className="home-hero-word">and work.</span>
+          <HoverLift className="home-hero-word">and work.</HoverLift>
         </h1>
         <p className="home-hero-description">Explore the page structure while content takes shape.</p>
-        <Button href="#contact" variant="primary" size="lg">
+        <Button href={sectionRoutes.contact} variant="primary" size="lg">
           Contact section
         </Button>
       </div>

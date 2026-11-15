@@ -1072,16 +1072,13 @@ a {
 }
 .home-hero-word {
   display: inline-block;
-  transition:
-    color 0.35s var(--ease),
-    transform 0.35s var(--ease);
+  transition: color 0.35s var(--ease);
 }
 .home-hero-title:hover .home-hero-word {
   color: color-mix(in srgb, var(--foreground) 48%, var(--background));
 }
 .home-hero-title .home-hero-word:hover {
   color: var(--foreground);
-  transform: translateY(-3px);
 }
 .home-hero-description {
   margin: 22px auto 0;
@@ -1109,8 +1106,5 @@ a {
   }
   .home-hero-word {
     transition: none;
-  }
-  .home-hero-title .home-hero-word:hover {
-    transform: none;
   }
 }

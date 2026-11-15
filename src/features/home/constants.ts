@@ -1,5 +1,5 @@
-import type { ContactCta, OrbitCardData } from "./types";
-
+import type { ContactCta } from "./types";
+import type { OrbitCardData } from "./components/OrbitRing/types";
 export const contactCta: ContactCta = {
   eyebrow: "Contact",
   headline: "A place to connect.",

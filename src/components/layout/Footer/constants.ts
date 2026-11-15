@@ -1,19 +1,20 @@
 import { Camera, ContactRound, Mail } from "lucide-react";
 import type { FooterType } from "./types";
+import { previewRoutes, sectionRoutes } from "@/lib/navigation/config";
 export type { FooterProps } from "./types";
 
 export const dataFooter: FooterType = {
   brand: {
     tagline: "A space for ideas, learning, and exploration.",
-    navigate_url: "#home",
+    navigate_url: previewRoutes.home,
   },
   resource: {
     title: "Quick Links",
     data: [
-      { name: "Home", navigate_url: "#home" },
-      { name: "Meet Me", navigate_url: "#meet-me" },
-      { name: "My Lab", navigate_url: "#work" },
-      { name: "Contact", navigate_url: "#contact" },
+      { name: "Home", navigate_url: previewRoutes.home },
+      { name: "Meet Me", navigate_url: previewRoutes["meet-me"] },
+      { name: "My Lab", navigate_url: previewRoutes.work },
+      { name: "Contact", navigate_url: sectionRoutes.contact },
     ],
   },
   contact: {
