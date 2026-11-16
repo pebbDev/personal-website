@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/lib/navigation";
 import { MessageCircleMore } from "lucide-react";
 import { contactCta } from "../constants";
 
@@ -23,10 +23,10 @@ export default function Contact() {
             )}
           </p>
           {href ? (
-            <Link className="home-contact-action" href={href}>
+            <NavLink className="home-contact-action" href={href}>
               {label}
               <MessageCircleMore className="home-contact-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
-            </Link>
+            </NavLink>
           ) : (
             <span className="home-contact-action home-contact-action--inactive">
               {label}
