@@ -1,4 +1,4 @@
-import type { AboutContent, ContactCta, FeaturedProject, JourneyContent } from "./types";
+import type { AboutContent, ContactCta, FeaturedProject, GalleryCategory, JourneyContent } from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
 import { previewRoutes } from "../../lib/navigation/config.ts";
 
@@ -75,6 +75,54 @@ export const featuredProjects: readonly FeaturedProject[] = [
     category: "Brand project",
     href: previewRoutes.work,
     photos: [{ position: 1 }, { position: 4 }, { position: 2 }, { position: 3 }],
+  },
+];
+
+export const galleryCategories: readonly GalleryCategory[] = [
+  {
+    id: "uiux",
+    title: "UI/UX Design",
+    shortTitle: "UI/UX",
+    description: "Mobile apps, dashboards, and websites, from user flows and wireframes to a working design system.",
+    tabColor: "#f2f2f2",
+    href: previewRoutes.work,
+    media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
+  },
+  {
+    id: "branding",
+    title: "Branding Design",
+    shortTitle: "Branding",
+    description: "Logos, visual identities, and brand guidelines that keep every touchpoint consistent.",
+    tabColor: "#eaeaea",
+    href: previewRoutes.work,
+    media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
+  },
+  {
+    id: "social",
+    title: "Social Media Design",
+    shortTitle: "Social",
+    description: "Campaign key visuals and content series for social channels and marketplaces.",
+    tabColor: "#e2e2e2",
+    href: previewRoutes.work,
+    media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
+  },
+  {
+    id: "event",
+    title: "Event Design",
+    shortTitle: "Event",
+    description: "Online and offline event materials, from first concept to vendor-ready files.",
+    tabColor: "#dadada",
+    href: previewRoutes.work,
+    media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
+  },
+  {
+    id: "ecommerce",
+    title: "E-commerce Design",
+    shortTitle: "E-com",
+    description: "Marketplace visuals, store homepages, and product pages that guide people to checkout.",
+    tabColor: "#d2d2d2",
+    href: previewRoutes.work,
+    media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
   },
 ];
 

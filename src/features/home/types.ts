@@ -53,3 +53,20 @@ export type FeaturedProject = Readonly<{
   href?: string;
   photos: readonly [FeaturedPhotoSlot, FeaturedPhotoSlot, FeaturedPhotoSlot, FeaturedPhotoSlot];
 }>;
+export type GalleryCategoryId = "uiux" | "branding" | "social" | "event" | "ecommerce";
+
+export type GalleryMediaSlot = Readonly<{
+  position: 1 | 2 | 3 | 4;
+  src?: string;
+  alt?: string;
+}>;
+
+export type GalleryCategory = Readonly<{
+  id: GalleryCategoryId;
+  title: string;
+  shortTitle: string;
+  description: string;
+  tabColor: string;
+  href?: string;
+  media: readonly [GalleryMediaSlot, GalleryMediaSlot, GalleryMediaSlot, GalleryMediaSlot];
+}>;
