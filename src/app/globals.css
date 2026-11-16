@@ -2010,6 +2010,130 @@ a.home-journey-resume:focus-visible svg {
   width: 100%;
   text-align: center;
 }
+.home-clients-heading {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto 56px;
+}
+
+.home-clients-shell {
+  position: relative;
+  width: 100%;
+}
+
+.home-clients-logo-run-two {
+  display: none;
+}
+
+.home-clients-marquee {
+  overflow: hidden;
+  padding: 10px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.home-clients-marquee + .home-clients-marquee {
+  margin-top: 12px;
+}
+
+.home-clients-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+}
+
+.home-clients-group {
+  display: flex;
+  flex: none;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-clients-slot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  height: 72px;
+  padding: 0 14px;
+}
+
+.home-clients-mark {
+  display: grid;
+  place-items: center;
+  width: 180px;
+  max-width: 200px;
+  height: 100%;
+  aspect-ratio: 5 / 2;
+  color: var(--muted);
+  font: 600 13px/1.4 var(--font-sub);
+  letter-spacing: 0.05em;
+  filter: grayscale(1) contrast(1.05);
+  opacity: 0.7;
+  transition:
+    filter 0.45s ease,
+    opacity 0.45s ease,
+    transform 0.45s ease;
+}
+
+.home-clients-slot:hover .home-clients-mark {
+  filter: none;
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.home-clients-marquee:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: -2px;
+}
+
+@media (max-width: 640px) {
+  .home-clients-logo-run-one {
+    display: none;
+  }
+
+  .home-clients-logo-run-two {
+    display: block;
+  }
+
+  .home-clients-slot {
+    height: 44px;
+    padding: 0 8px;
+  }
+
+  .home-clients-mark {
+    width: 110px;
+    max-width: 140px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-clients-marquee {
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .home-clients-track {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    transform: none;
+  }
+
+  .home-clients-group {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .home-clients-group[aria-hidden="true"] {
+    display: none;
+  }
+}
+
 .home-contact {
   padding-top: 24px;
 }

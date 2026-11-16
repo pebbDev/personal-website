@@ -76,3 +76,8 @@ export type TestimonialPreview = Readonly<{
   notice: string;
   meta: string;
 }>;
+
+export type ClientPreview = Readonly<{
+  id: string;
+  label: string;
+}>;

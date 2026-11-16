@@ -5,6 +5,7 @@ import type {
   GalleryCategory,
   JourneyContent,
   TestimonialPreview,
+  ClientPreview,
 } from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
 import { previewRoutes } from "../../lib/navigation/config.ts";
@@ -141,6 +142,11 @@ export const testimonialPreviews: readonly TestimonialPreview[] = Array.from({ l
     notice: "Layout preview — verified feedback not yet available.",
     meta: "Example card, not an endorsement",
   };
+});
+
+export const clientPreviews: readonly ClientPreview[] = Array.from({ length: 14 }, (_, index) => {
+  const number = String(index + 1).padStart(2, "0");
+  return { id: `client-preview-${number}`, label: `Preview mark ${number}` };
 });
 
 export const contactCta: ContactCta = {
