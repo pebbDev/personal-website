@@ -70,3 +70,9 @@ export type GalleryCategory = Readonly<{
   href?: string;
   media: readonly [GalleryMediaSlot, GalleryMediaSlot, GalleryMediaSlot, GalleryMediaSlot];
 }>;
+export type TestimonialPreview = Readonly<{
+  id: "preview-01" | "preview-02" | "preview-03" | "preview-04" | "preview-05";
+  label: string;
+  notice: string;
+  meta: string;
+}>;

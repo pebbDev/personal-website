@@ -1786,9 +1786,226 @@ a.home-journey-resume:focus-visible svg {
   }
 }
 
+/* Home Testimonials — source-shaped pinned paper board. */
 .home-words {
-  background: var(--surface-subtle);
+  --words-board: #f6f6f6;
+  --words-board-line: #ececec;
+  --words-paper: #ffffff;
+  --words-notice: #f5f5f5;
+  --words-ink: #111111;
+  --words-muted: #777777;
+  --words-pin: #111111;
+  --words-avatar: #eeeeee;
+  padding: 0;
+  background: var(--words-board);
+  background-image: repeating-linear-gradient(180deg, transparent 0 35px, var(--words-board-line) 35px 36px);
 }
+/* Intentional dark-mode palette; the source board is light-only. */
+.dark .home-words {
+  --words-board: #1b1f23;
+  --words-board-line: #323941;
+  --words-paper: #2b323a;
+  --words-notice: #39424b;
+  --words-ink: #f5f5f5;
+  --words-muted: #b9c1ca;
+  --words-pin: #cfd7df;
+  --words-avatar: #4d5864;
+}
+.home-words-sticky {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 44px;
+  padding: 96px 0;
+}
+.home-words-head {
+  text-align: center;
+}
+.home-words-head .home-heading {
+  letter-spacing: -0.01em;
+}
+.home-words-board {
+  text-align: start;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 30px 26px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.home-words-note {
+  position: relative;
+  grid-column: span 2;
+  min-width: 0;
+  margin: 0;
+  transform-origin: 50% 12%;
+}
+.home-words-note:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+.home-words-note:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+.home-words-note-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--words-paper);
+  box-shadow:
+    0 1px 2px rgba(11, 21, 51, 0.06),
+    0 14px 30px -14px rgba(11, 21, 51, 0.28);
+  transition:
+    transform 0.35s var(--ease),
+    box-shadow 0.35s var(--ease);
+}
+.home-words-pin-icon {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 50%;
+  background: var(--words-pin);
+  box-shadow:
+    0 3px 5px -1px rgba(11, 21, 51, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  transition: transform 0.3s var(--ease);
+}
+.home-words-pin-icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: rgba(11, 21, 51, 0.25);
+}
+.home-words-note-content {
+  display: -webkit-box;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 15px;
+  margin: 0;
+  border-radius: 6px;
+  background: var(--words-notice);
+  color: var(--words-ink);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+.home-words-note-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px;
+}
+.home-words-avatar {
+  display: block;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--words-avatar);
+}
+.home-words-note-author b {
+  display: block;
+  color: var(--words-ink);
+  font-family: var(--font-sub);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+.home-words-note-author small {
+  display: block;
+  color: var(--words-muted);
+  font-size: 13px;
+  line-height: 1.3;
+}
+.home-words-board.is-spread .home-words-note:hover .home-words-note-inner {
+  transform: translateY(-6px) rotate(var(--hr, 1deg));
+  box-shadow:
+    0 1px 2px rgba(11, 21, 51, 0.06),
+    0 24px 40px -16px rgba(11, 21, 51, 0.34);
+}
+.home-words-board.is-spread .home-words-note:hover .home-words-pin-icon {
+  transform: translateY(-2px) rotate(-8deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-words-note,
+  .home-words-note-inner,
+  .home-words-pin-icon {
+    transition: none !important;
+    animation: none !important;
+  }
+  .home-words-note {
+    transform: none !important;
+  }
+  .home-words-board.is-spread .home-words-note:hover .home-words-note-inner,
+  .home-words-board.is-spread .home-words-note:hover .home-words-pin-icon {
+    transform: none !important;
+  }
+}
+@media (min-width: 901px) and (min-height: 640px) {
+  .home-words-pin {
+    height: 220vh;
+  }
+  .home-words-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 84px 0 28px;
+  }
+  .home-words-note {
+    height: clamp(210px, calc((100vh - 300px) / 2), 268px);
+  }
+}
+@media (max-width: 1020px) {
+  .home-words-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 20px;
+  }
+  .home-words-note,
+  .home-words-note:nth-child(4) {
+    grid-column: auto;
+  }
+  .home-words-note:nth-child(5) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 10px);
+  }
+  .home-words-note {
+    min-height: 230px;
+  }
+}
+@media (max-width: 640px) {
+  .home-words-board {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+  .home-words-note:nth-child(5) {
+    grid-column: auto;
+    width: auto;
+    justify-self: stretch;
+  }
+  .home-words-note {
+    min-height: 0;
+  }
+  .home-words-sticky {
+    padding: 80px 0;
+  }
+}
+
 .home-clients {
   width: 100%;
   text-align: center;

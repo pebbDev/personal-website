@@ -1,4 +1,11 @@
-import type { AboutContent, ContactCta, FeaturedProject, GalleryCategory, JourneyContent } from "./types";
+import type {
+  AboutContent,
+  ContactCta,
+  FeaturedProject,
+  GalleryCategory,
+  JourneyContent,
+  TestimonialPreview,
+} from "./types";
 import type { OrbitCardData } from "./components/OrbitRing/types";
 import { previewRoutes } from "../../lib/navigation/config.ts";
 
@@ -125,6 +132,16 @@ export const galleryCategories: readonly GalleryCategory[] = [
     media: [{ position: 1 }, { position: 2 }, { position: 3 }, { position: 4 }],
   },
 ];
+
+export const testimonialPreviews: readonly TestimonialPreview[] = Array.from({ length: 5 }, (_, index) => {
+  const number = String(index + 1).padStart(2, "0") as "01" | "02" | "03" | "04" | "05";
+  return {
+    id: `preview-${number}` as TestimonialPreview["id"],
+    label: `Feedback preview ${number}`,
+    notice: "Layout preview — verified feedback not yet available.",
+    meta: "Example card, not an endorsement",
+  };
+});
 
 export const contactCta: ContactCta = {
   eyebrow: "Contact",
