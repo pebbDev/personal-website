@@ -1,3 +1,4 @@
+import { NavLink } from "@/lib/navigation";
 import type { ButtonProps } from "./types";
 import { getButtonClasses } from "./variants";
 
@@ -8,9 +9,9 @@ export function Button(props: ButtonProps) {
   if (typeof elementProps.href === "string") {
     const { href, ...anchorProps } = elementProps;
     return (
-      <a {...anchorProps} href={href} className={classes}>
+      <NavLink {...anchorProps} href={href} className={classes}>
         {children}
-      </a>
+      </NavLink>
     );
   }
 
