@@ -862,6 +862,12 @@ a.home-about-contact-pill:hover {
   padding: 7px 12px;
   font-size: 14px;
 }
+/* Source-shared halftone layer for Experiences and the rounded Contact card. */
+.home-halftone-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
 .home-journey {
   --journey-text: #ededed;
   --journey-muted: #a3a3a3;
@@ -870,13 +876,10 @@ a.home-about-contact-pill:hover {
   --journey-tag-hover: #343434;
   --ui-badge-soft-bg: var(--journey-tag-bg);
   --ui-badge-soft-text: #cfcfcf;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   background: #111111;
   color: var(--journey-text);
 }
-.home-journey::before {
+.home-halftone-surface::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1072,7 +1075,7 @@ a.home-journey-resume:focus-visible svg {
   outline-color: var(--journey-text);
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-journey::before {
+  .home-halftone-surface::before {
     animation: none;
   }
   .home-journey-logo,
@@ -2198,12 +2201,9 @@ a.home-journey-resume:focus-visible svg {
 
 /* PER-24: Home Contact CTA / full Footer fidelity to Website-Clone. Compact remains independent. */
 .home-contact {
-  padding: 24px 0 0;
+  padding: 24px 0 120px;
 }
 .home-contact-cta {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   border-radius: var(--radius);
   padding: 80px 32px;
   background: #111111;
@@ -2241,21 +2241,39 @@ a.home-journey-resume:focus-visible svg {
   font-weight: 500;
   transition:
     transform 0.25s var(--ease),
-    box-shadow 0.25s var(--ease);
+    box-shadow 0.25s var(--ease),
+    border-color 0.25s var(--ease);
 }
-.home-contact-action:not(.home-contact-action--inactive):hover {
+.home-contact-action:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgb(0 0 0 / 18%);
 }
 .home-contact-action--inactive {
   cursor: default;
+  background: #dddddd;
+  border-color: #dddddd;
+  color: #555555;
+}
+.home-contact-status {
+  margin: 12px auto 0;
+  color: rgb(255 255 255 / 78%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.home-contact-action:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
+}
+.home-contact-action:not(.home-contact-action--inactive):active {
+  transform: translateY(0) scale(0.98);
 }
 .home-contact-icon {
   width: 18px;
   height: 18px;
   transition: transform 0.3s var(--ease);
 }
-.home-contact-action:not(.home-contact-action--inactive):hover .home-contact-icon {
+.home-contact-action:hover .home-contact-icon,
+.home-contact-action:not(.home-contact-action--inactive):focus-visible .home-contact-icon {
   transform: rotate(-8deg) scale(1.1);
 }
 .footer--full .footer__container {
@@ -2329,6 +2347,9 @@ a.home-journey-resume:focus-visible svg {
   color: #111111;
   text-decoration: none;
 }
+.footer--full .footer__contact .footer__inactive {
+  cursor: default;
+}
 .footer--full .footer__icon {
   width: 16px;
   height: 16px;
@@ -2371,6 +2392,9 @@ a.home-journey-resume:focus-visible svg {
   .home-contact-cta {
     padding: 56px 22px;
   }
+  .home-contact {
+    padding-bottom: 88px;
+  }
   .footer--full .footer__container {
     padding: 0 16px;
   }
@@ -2386,20 +2410,33 @@ a.home-journey-resume:focus-visible svg {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .home-contact-cta {
+    opacity: 1 !important;
+    transform: none !important;
+  }
   .home-contact-action,
   .home-contact-icon,
   .footer--full .footer__brand img {
     transition: none;
   }
-  .home-contact-action:not(.home-contact-action--inactive):hover,
-  .home-contact-action:not(.home-contact-action--inactive):hover .home-contact-icon,
+  .home-contact-action:hover,
+  .home-contact-action:hover .home-contact-icon,
+  .home-contact-action:not(.home-contact-action--inactive):focus-visible .home-contact-icon,
+  .home-contact-action:not(.home-contact-action--inactive):active,
   .footer--full .footer__brand:hover img {
     transform: none;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .footer--full .footer__contact .footer__inactive {
+    transition: none;
+    background-image: none;
+  }
+}
 /* Website-Clone motion.css: focused footer/CTA micro-interactions. */
 @media (prefers-reduced-motion: no-preference) {
-  .footer--full li a {
+  .footer--full li a,
+  .footer--full .footer__contact .footer__inactive {
     background-image: linear-gradient(currentColor, currentColor);
     background-size: 0 1px;
     background-repeat: no-repeat;
@@ -2409,14 +2446,15 @@ a.home-journey-resume:focus-visible svg {
       color 0.2s;
   }
   .footer--full li a:hover,
-  .footer--full li a:focus-visible {
+  .footer--full li a:focus-visible,
+  .footer--full .footer__contact .footer__inactive:hover {
     background-size: 100% 1px;
   }
-  .home-contact-action:not(.home-contact-action--inactive):hover {
-    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 45%);
+  .footer--full .footer__contact .footer__inactive:hover {
+    color: var(--foreground);
   }
-  .home-contact-action:not(.home-contact-action--inactive):active {
-    transform: translateY(0) scale(0.98);
+  .home-contact-action:hover {
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 45%);
   }
 }
 

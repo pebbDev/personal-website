@@ -13,7 +13,7 @@ export default function Journey() {
   const { eyebrow, heading, lead, aboutAction, resumeAction, experiences } = journeyContent;
 
   return (
-    <section id="journey" className="home-section home-journey" aria-labelledby="journey-heading">
+    <section id="journey" className="home-section home-journey home-halftone-surface" aria-labelledby="journey-heading">
       <div className="home-wrap">
         <motion.div
           className="home-journey-head home-journey-reveal"

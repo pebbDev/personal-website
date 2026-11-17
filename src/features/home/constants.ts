@@ -152,8 +152,8 @@ export const clientPreviews: readonly ClientPreview[] = Array.from({ length: 14 
 export const contactCta: ContactCta = {
   eyebrow: "Contact",
   headline: "A place to connect.",
-  description: "Contact options will appear here after review.",
-  label: "Get in touch",
+  description: "Interested in a future collaboration?\nContact details will be available after review.",
+  label: "Contact unavailable",
 };
 
 export const orbitCards: readonly OrbitCardData[] = [
