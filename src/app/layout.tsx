@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Navbar from "@/components/layout/Navbar";
 import ThemeProvider from "@/components/provider/theme-provider";
+import { NavLink, sectionRoutes } from "@/lib/navigation";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,11 +22,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           storageKey="personal-website-theme"
           disableTransitionOnChange
         >
-          <a href="#main-content" className="skip-link">
+          <NavLink href={sectionRoutes.mainContent} className="skip-link">
             Skip to content
-          </a>
+          </NavLink>
           <Navbar />
-          <main id="main-content" className="site-main">
+          <main id="main-content" className="site-main" tabIndex={-1}>
             {children}
           </main>
         </ThemeProvider>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/lib/navigation";
 import { dataFooter, type FooterProps } from "./constants";
 
 const Footer = (props: FooterProps) => {
@@ -21,9 +21,9 @@ const Footer = (props: FooterProps) => {
           <div className="footer__grid footer__grid--3">
             {/* Brand */}
             <div className="footer__identity">
-              <Link href={brand.navigate_url} className="footer__brand" aria-label="Back to top">
+              <NavLink href={brand.navigate_url} className="footer__brand" aria-label="Back to top">
                 <span className="footer__brand-placeholder" aria-hidden="true" />
-              </Link>
+              </NavLink>
               <p className="footer__tag">{brand.tagline}</p>
             </div>
 
@@ -33,7 +33,7 @@ const Footer = (props: FooterProps) => {
               <ul>
                 {resource.data.map((data) => (
                   <li key={data.navigate_url}>
-                    <Link href={data.navigate_url}>{data.name}</Link>
+                    <NavLink href={data.navigate_url}>{data.name}</NavLink>
                   </li>
                 ))}
               </ul>
@@ -46,14 +46,14 @@ const Footer = (props: FooterProps) => {
                 {contact.data.map((data) => (
                   <li key={data.value}>
                     {data.navigate_url ? (
-                      <Link
+                      <NavLink
                         href={data.navigate_url}
                         target={data.navigate_url.startsWith("https://") ? "_blank" : undefined}
                         rel={data.navigate_url.startsWith("https://") ? "noopener noreferrer" : undefined}
                       >
                         <data.icon className="footer__icon" size={16} strokeWidth={1.8} aria-hidden="true" />
                         {data.value}
-                      </Link>
+                      </NavLink>
                     ) : (
                       <span className="footer__inactive">
                         <data.icon className="footer__icon" size={16} strokeWidth={1.8} aria-hidden="true" />

@@ -1,6 +1,10 @@
-import Link from "next/link";
+import * as motion from "motion/react-client";
+import { NavLink } from "@/lib/navigation";
 import { MessageCircleMore } from "lucide-react";
 import { contactCta } from "../constants";
+
+const revealViewport = { once: true, amount: 0.12, margin: "0px 0px -40px 0px" } as const;
+const revealEase = [0.16, 1, 0.3, 1] as const;
 
 export default function Contact() {
   const { eyebrow, headline, description, label, href } = contactCta;
@@ -9,7 +13,13 @@ export default function Contact() {
   return (
     <section id="contact" className="home-contact" aria-labelledby="contact-heading">
       <div className="home-wrap">
-        <div className="home-contact-cta">
+        <motion.div
+          className="home-contact-cta home-halftone-surface"
+          initial={{ opacity: 0, y: 48, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={revealViewport}
+          transition={{ duration: 1.1, ease: revealEase }}
+        >
           <p className="home-eyebrow">{eyebrow}</p>
           <h2 id="contact-heading" className="home-heading">
             {headline}
@@ -23,17 +33,25 @@ export default function Contact() {
             )}
           </p>
           {href ? (
-            <Link className="home-contact-action" href={href}>
+            <NavLink className="home-contact-action" href={href}>
               {label}
               <MessageCircleMore className="home-contact-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
-            </Link>
+            </NavLink>
           ) : (
-            <span className="home-contact-action home-contact-action--inactive">
-              {label}
-              <MessageCircleMore className="home-contact-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
-            </span>
+            <>
+              <span
+                className="home-contact-action home-contact-action--inactive"
+                aria-describedby="contact-availability"
+              >
+                {label}
+                <MessageCircleMore className="home-contact-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+              <p id="contact-availability" className="home-contact-status">
+                Contact details are not available in this preview.
+              </p>
+            </>
           )}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
