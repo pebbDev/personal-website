@@ -3,10 +3,7 @@ import type { MeetMeContent } from "./types";
 export const meetMeContent: MeetMeContent = {
   hero: {
     title: "Meet Me",
-    introParagraphs: [
-      "Professional details are pending approval.",
-      "More details are awaiting approval.",
-    ],
+    introParagraphs: ["Professional details are pending approval.", "More details are awaiting approval."],
     portraitCaption: "Portrait placeholder",
   },
   experiences: [
@@ -97,4 +94,11 @@ export const meetMeContent: MeetMeContent = {
     { label: "Language 02", value: "Details pending approval" },
   ],
   closingHeading: "More details pending approval",
+};
+
+// Temporary bridge for the existing preview composer.
+// Remove in Task 2 when the full Meet Me layout replaces PagePlaceholder.
+export const previewData = {
+  title: meetMeContent.hero.title,
+  description: meetMeContent.hero.introParagraphs.join(" "),
 };
