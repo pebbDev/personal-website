@@ -164,6 +164,8 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
 
     for (const [index, width] of widths.entries()) {
       await browser.resize(width);
+      await evaluate(`window.scrollTo({ top: 0, behavior: "instant" })`);
+      await browser.screenshot(`work-${width}.png`);
       const geometry = await evaluate(`(() => {
         const page = document.querySelector(".work-page");
         const grid = page.querySelector(".work-project-grid");
@@ -271,6 +273,8 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
         );
         for (const width of [390, 1440]) {
           await browser.resize(width);
+          await evaluate(`window.scrollTo({ top: 0, behavior: "instant" })`);
+          await browser.screenshot(`work-${dark ? "dark" : "light"}-${width}.png`);
           const colors = await evaluate(`(() => ({
             background: getComputedStyle(document.body).backgroundColor,
             heading: getComputedStyle(document.querySelector(".work-intro-title")).color,
