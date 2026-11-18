@@ -190,6 +190,60 @@ test("Meet Me Experience heading and list contract", { timeout: 120000 }, async 
   assert.equal(result.media, 0);
 });
 
+test("Meet Me Experience source-aligned flex row across nine viewports", { timeout: 150000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('#experience .meet-me-timeline-entry').length"),
+    (count) => count === 6,
+    "Experience timeline did not mount",
+    20000
+  );
+  for (const width of [390, 640, 641, 768, 900, 901, 1100, 1101, 1440]) {
+    await browser.resize(width);
+    const m = await browser.evaluate(`(() => {
+      const items = [...document.querySelectorAll("#experience .meet-me-timeline-entry")];
+      const first = items[0];
+      const top = first.querySelector(".meet-me-timeline-top");
+      const company = first.querySelector("h3");
+      const role = first.querySelector(".meet-me-timeline-role");
+      const logo = first.querySelector(".meet-me-timeline-logo");
+      const s = top ? getComputedStyle(top) : null;
+      return {
+        hasTop: !!top,
+        display: s?.display,
+        justify: s?.justifyContent,
+        align: s?.alignItems,
+        wrap: s?.flexWrap,
+        rowGap: s?.rowGap,
+        columnGap: s?.columnGap,
+        roleMarginTop: getComputedStyle(role).marginTop,
+        companyBottom: company.getBoundingClientRect().bottom,
+        roleTop: role.getBoundingClientRect().top,
+        logoWidth: logo.getBoundingClientRect().width,
+        fakeLogoLinks: first.querySelectorAll(".meet-me-timeline-logo a, .meet-me-timeline-logo button").length,
+        lastConnector: getComputedStyle(items[5], "::after").content,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    })()`);
+    assert.equal(m.hasTop, true, "Missing company/role flex wrapper at " + width);
+    assert.equal(m.display, "flex");
+    assert.equal(m.justify, "space-between");
+    assert.equal(m.align, "baseline");
+    assert.equal(m.wrap, "wrap");
+    assert.equal(m.rowGap, "8px");
+    assert.equal(m.columnGap, "24px");
+    assert.equal(m.roleMarginTop, "0px");
+    assert.equal(m.logoWidth, width <= 640 ? 48 : 64);
+    assert.equal(m.fakeLogoLinks, 0);
+    assert.equal(m.lastConnector, "none");
+    assert.ok(m.overflow <= 1, "Horizontal overflow at " + width);
+    if (width >= 1101) {
+      assert.ok(m.roleTop <= m.companyBottom, "Desktop role should share company heading row at " + width);
+    }
+  }
+});
+
 test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });

@@ -6,8 +6,10 @@ export default function ExperienceEntry({ entry }: Readonly<{ entry: MeetMeExper
     <li className="meet-me-timeline-entry">
       <span className="meet-me-timeline-logo" aria-hidden="true" />
       <div className="meet-me-timeline-copy">
-        <h3 className="meet-me-timeline-organization">{entry.organizationLabel}</h3>
-        <p className="meet-me-timeline-role">{entry.roleLabel}</p>
+        <div className="meet-me-timeline-top">
+          <h3 className="meet-me-timeline-organization">{entry.organizationLabel}</h3>
+          <p className="meet-me-timeline-role">{entry.roleLabel}</p>
+        </div>{" "}
         <p className="meet-me-timeline-meta">{entry.metaLabel}</p>
         <p className="meet-me-timeline-summary">{entry.summaryLabel}</p>
         {entry.responsibilityLabels?.length ? (

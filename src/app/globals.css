@@ -2848,13 +2848,21 @@ a.home-journey-resume:focus-visible svg {
 .meet-me-timeline-copy {
   min-width: 0;
 }
+.meet-me-timeline-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  min-width: 0;
+}
 .meet-me-timeline-organization {
   margin: 0;
   font: 300 clamp(26px, 3vw, 34px) / 1.15 var(--font-display);
   transition: transform 0.3s var(--ease);
 }
 .meet-me-timeline-role {
-  margin: 6px 0 0;
+  margin: 0;
   color: var(--muted);
   font: 400 17px/1.4 var(--font-sub);
 }
@@ -2869,6 +2877,9 @@ a.home-journey-resume:focus-visible svg {
 }
 .meet-me-timeline-details {
   margin-top: 12px;
+}
+.meet-me-timeline-details summary:hover {
+  color: var(--foreground);
 }
 .meet-me-timeline-responsibilities {
   display: grid;
@@ -2890,7 +2901,7 @@ a.home-journey-resume:focus-visible svg {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #cfcfcf;
+  background: var(--foreground);
 }
 .meet-me-timeline-entry:hover .meet-me-timeline-logo {
   transform: scale(1.08) rotate(-4deg);
