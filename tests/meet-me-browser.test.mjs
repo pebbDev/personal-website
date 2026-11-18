@@ -51,3 +51,51 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.mediaAndLinks, 0, "Meet Me hero must not contain media or links");
   assert.equal(hero.navCount, 1, "Meet Me must not render a second Navbar");
 });
+
+test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-timeline-entry').length"),
+    (count) => count === 6,
+    "Expected six source-shaped experience entries",
+    20000
+  );
+
+  const snapshot = await browser.evaluate(
+    "(() => { const items = [...document.querySelectorAll('.meet-me-timeline-entry')]; const details = [...document.querySelectorAll('#experience details')]; return { count: items.length, detailsPerItem: items.map((item) => item.querySelectorAll('details > summary').length), listsPerItem: items.map((item) => item.querySelectorAll('details ul').length), allClosed: details.every((detail) => !detail.open), logos: items.filter((item) => !!item.querySelector('.meet-me-timeline-logo[aria-hidden]')).length }; })()"
+  );
+  assert.equal(snapshot.count, 6);
+  assert.deepEqual(snapshot.detailsPerItem, [1, 1, 1, 1, 1, 0]);
+  assert.deepEqual(snapshot.listsPerItem, [1, 1, 1, 1, 1, 0]);
+  assert.equal(snapshot.allClosed, true, "Native disclosures should start closed");
+  assert.equal(snapshot.logos, 6, "Each entry needs a decorative logo slot");
+
+  const open = () => browser.evaluate("Boolean(document.querySelector('#experience details')?.open)");
+  await browser.send("Page.bringToFront");
+  assert.equal(await browser.evaluate("document.hasFocus()"), true, "CDP page must have focus for keyboard test");
+  await browser.evaluate("document.querySelector('#experience details summary').focus()");
+
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+    text: "\r",
+  });
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+  });
+  await eventually(open, (isOpen) => isOpen, "Enter should open native details", 2000);
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: " ",
+    code: "Space",
+    windowsVirtualKeyCode: 32,
+  });
+  await browser.send("Input.dispatchKeyEvent", { type: "keyUp", key: " ", code: "Space", windowsVirtualKeyCode: 32 });
+  await eventually(open, (isOpen) => !isOpen, "Space should close native details", 2000);
+});
