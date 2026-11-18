@@ -62,4 +62,99 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     Boolean,
     "Work preview did not restore after Home navigation"
   );
+
+  await t.test("catalog renders the source-ordered rights-safe All preview", async () => {
+    const catalog = await evaluate(`(() => {
+      const root = document.querySelector(".work-page");
+      const buttons = Array.from(root.querySelectorAll(".work-chips button"), button => ({
+        label: button.textContent.replace(/\\s+/g, " ").trim(),
+        disabled: button.disabled,
+        pressed: button.getAttribute("aria-pressed"),
+      }));
+      const categories = Array.from(root.querySelectorAll(".work-category"), section => ({
+        id: section.dataset.category,
+        heading: !!section.querySelector("h2")?.textContent.trim(),
+        description: !!section.querySelector(".work-category-description")?.textContent.trim(),
+        ids: Array.from(section.querySelectorAll(".work-project-card"), card => card.dataset.projectId),
+      }));
+      const cards = Array.from(root.querySelectorAll(".work-project-card"));
+      return {
+        buttons,
+        filtersHint: !!root.querySelector(".work-filter-status")?.textContent.trim(),
+        categories,
+        cardCount: cards.length,
+        uniqueCount: new Set(cards.map(card => card.dataset.projectId)).size,
+        cardsComplete: cards.every(card => !!card.querySelector("h3")?.textContent.trim() &&
+          !!card.querySelector(".work-project-meta")?.textContent.trim() &&
+          !!card.querySelector(".work-project-cover") &&
+          !!card.querySelector(".work-project-affordance")?.textContent.trim()),
+        unsafeCards: root.querySelectorAll(".work-project-card a, .work-project-card button, .work-project-card[tabindex]").length,
+        mediaCount: root.querySelectorAll("img, video, picture, iframe, source").length,
+        unsafeLinks: root.querySelectorAll('a[href^="http"], a[href$=".html"]').length,
+        forbiddenCopy: /cekat|subaru|realfood|ocistok|linkedin|instagram/i.test(root.textContent),
+      };
+    })()`);
+
+    assert.deepEqual(catalog.buttons, [
+      { label: "All 22", disabled: true, pressed: "true" },
+      { label: "UI/UX 9", disabled: true, pressed: "false" },
+      { label: "Branding 9", disabled: true, pressed: "false" },
+      { label: "Social Media 5", disabled: true, pressed: "false" },
+      { label: "Event 5", disabled: true, pressed: "false" },
+      { label: "E-commerce 2", disabled: true, pressed: "false" },
+    ]);
+    assert.equal(catalog.filtersHint, true);
+    const expectedCategories = [
+      [
+        "uiux",
+        [
+          "cekat-ai-website",
+          "movastocks",
+          "ocistok-mobile-apps",
+          "poci",
+          "maku",
+          "realfood-mobile-apps",
+          "nexta-dashboard",
+          "k-circle",
+          "jaro",
+        ],
+      ],
+      [
+        "branding",
+        [
+          "cekat-innov-2025",
+          "creative-designer-cekat-ai",
+          "furrr-fun",
+          "realfood-kiddos",
+          "ocistok-graphic",
+          "kaporak",
+          "mr-roastman",
+          "de-jamu",
+          "santuy-coffee",
+        ],
+      ],
+      ["social", ["cekat-innov-2025", "creative-designer-cekat-ai", "grid-network", "subaru-indonesia", "ergotron"]],
+      [
+        "event",
+        ["cekat-innov-2025", "creative-designer-cekat-ai", "grid-network", "ocistok-graphic", "subaru-indonesia"],
+      ],
+      ["ecommerce", ["realfood-marketplace", "subaru-indonesia"]],
+    ];
+    assert.deepEqual(
+      catalog.categories.map(({ id, ids }) => [id, ids]),
+      expectedCategories
+    );
+    for (const category of catalog.categories) {
+      assert.equal(category.heading, true);
+      assert.equal(category.description, true);
+      assert.equal(new Set(category.ids).size, category.ids.length);
+    }
+    assert.equal(catalog.cardCount, 30);
+    assert.equal(catalog.uniqueCount, 22);
+    assert.equal(catalog.cardsComplete, true);
+    assert.equal(catalog.unsafeCards, 0);
+    assert.equal(catalog.mediaCount, 0);
+    assert.equal(catalog.unsafeLinks, 0);
+    assert.equal(catalog.forbiddenCopy, false);
+  });
 });
