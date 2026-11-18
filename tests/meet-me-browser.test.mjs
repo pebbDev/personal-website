@@ -26,11 +26,14 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
       inlinePortraitStyles: root.querySelectorAll(".meet-me-portrait[style], .meet-me-portrait [style]").length,
       portraitArtAspect: getComputedStyle(root.querySelector(".meet-me-portrait-art")).aspectRatio,
       caption: root.querySelector(".meet-me-portrait figcaption")?.textContent?.trim(),
-      connectSlots: root.querySelectorAll(".meet-me-connect [aria-hidden='true']").length,
+      connectSlots: root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon[aria-hidden='true']").length,
+      lucideIcons: root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon > svg.lucide").length,
+      iconDimensions: Array.from(root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon > svg")).map(
+        (icon) => [icon.getAttribute("width"), icon.getAttribute("height"), icon.getAttribute("stroke-width")]
+      ),
       connectControls: root.querySelectorAll(".meet-me-connect a, .meet-me-connect button").length,
       portraitImages: root.querySelectorAll(".meet-me-portrait img").length,
-      mediaAndLinks: root.querySelectorAll(
-        "img, picture, video, audio, iframe, source, object, embed, a[href], [src], [href], [poster]",
+      mediaAndLinks: root.querySelectorAll(        "img, picture, video, audio, iframe, source, object, embed, a[href], [src], [href], [poster]",
       ).length,
       navCount: document.querySelectorAll("nav").length,
     };
@@ -46,6 +49,11 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.portraitArtAspect, "4 / 5", "Placeholder portrait geometry must remain 4:5");
   assert.equal(hero.caption, "Portrait placeholder", "Portrait caption should remain non-identifying");
   assert.equal(hero.connectSlots, 4, "Meet Me should show four decorative connection slots");
+  assert.equal(hero.lucideIcons, 4, "All four Meet Me icons must use the installed Lucide library");
+  assert.deepEqual(
+    hero.iconDimensions,
+    Array.from({ length: 4 }, () => ["24", "24", "1.5"])
+  );
   assert.equal(hero.connectControls, 0, "Decorative connection slots must not be interactive");
   assert.equal(hero.portraitImages, 0, "Portrait must not load real media");
   assert.equal(hero.mediaAndLinks, 0, "Meet Me hero must not contain media or links");
