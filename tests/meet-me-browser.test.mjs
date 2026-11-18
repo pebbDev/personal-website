@@ -99,3 +99,59 @@ test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
   await browser.send("Input.dispatchKeyEvent", { type: "keyUp", key: " ", code: "Space", windowsVirtualKeyCode: 32 });
   await eventually(open, (isOpen) => !isOpen, "Space should close native details", 2000);
 });
+
+test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-hero'))"),
+    Boolean,
+    "Meet Me hero did not render",
+    20000
+  );
+
+  const structure = await browser.evaluate(`(() => {
+    const root = document.querySelector(".meet-me");
+    const toc = root?.querySelector(".meet-me-toc");
+    const article = root?.querySelector(".meet-me-content");
+    const sections = Array.from(article?.querySelectorAll(":scope > section.meet-me-section") ?? []);
+    const tocItems = Array.from(toc?.querySelectorAll("ol > li") ?? []);
+    const tocSpans = Array.from(toc?.querySelectorAll("ol > li > span") ?? []);
+    return {
+      heroCount: root?.querySelectorAll(".meet-me-hero").length ?? 0,
+      sectionIds: sections.map((section) => section.id),
+      articleCount: root?.querySelectorAll("article.meet-me-content").length ?? 0,
+      tocItemCount: tocItems.length,
+      tocLabels: tocSpans.map((span) => span.textContent?.trim()),
+      tocControlCount: toc?.querySelectorAll(
+        "a, button, input, select, textarea, [role='link'], [role='button'], [tabindex], [onclick]",
+      ).length ?? 0,
+      detailRowCounts: ["education", "skills", "languages"].map(
+        (id) => article?.querySelectorAll("#" + id + " dl.meet-me-rows > div").length ?? 0,
+      ),
+      certificationCount: article?.querySelectorAll(
+        "#certifications > ol.meet-me-steps > li.meet-me-step",
+      ).length ?? 0,
+      hash: window.location.hash,
+    };
+  })()`);
+
+  assert.equal(structure.heroCount, 1, "Meet Me should keep one hero");
+  assert.deepEqual(
+    structure.sectionIds,
+    ["experience", "education", "certifications", "skills", "languages"],
+    "Reading sections should have five unique IDs in source order"
+  );
+  assert.equal(new Set(structure.sectionIds).size, 5, "Reading section IDs should be unique");
+  assert.equal(structure.articleCount, 1, "All reading sections should be in one article");
+  assert.equal(structure.tocItemCount, 5, "On this page should contain five labels");
+  assert.deepEqual(structure.tocLabels, ["Experience", "Education", "Certifications", "Skills & Tools", "Languages"]);
+  assert.equal(structure.tocControlCount, 0, "TOC labels should remain inert, without link-like controls");
+  assert.deepEqual(
+    structure.detailRowCounts,
+    [3, 7, 2],
+    "Education, skills, and languages should use the approved row counts"
+  );
+  assert.equal(structure.certificationCount, 3, "Certifications should contain three ordered steps");
+  assert.equal(structure.hash, "#meet-me", "Inspecting the inert TOC should preserve the preview hash");
+});
