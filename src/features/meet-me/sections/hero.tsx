@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { CircleDot, CirclePlus, Network, SquarePlus } from "lucide-react";
 import MeetMePortrait from "../components/MeetMePortrait";
 import type { MeetMeHero } from "../types";
@@ -11,12 +12,20 @@ const connectIcons = [
 
 export default function Hero({ hero }: Readonly<{ hero: MeetMeHero }>) {
   return (
-    <section className="meet-me-hero" aria-labelledby="meet-me-title">
+    <header className="meet-me-hero" aria-labelledby="meet-me-title">
       <div className="meet-me-hero-copy">
         <h1 id="meet-me-title">{hero.title}</h1>
         <div className="meet-me-intro">
-          {hero.introParagraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+          {hero.intro.map((paragraph, paragraphIndex) => (
+            <p key={paragraphIndex}>
+              {paragraph.map((segment, segmentIndex) =>
+                segment.highlighted ? (
+                  <mark key={segmentIndex}>{segment.text}</mark>
+                ) : (
+                  <Fragment key={segmentIndex}>{segment.text}</Fragment>
+                )
+              )}
+            </p>
           ))}
         </div>
         <div className="meet-me-connect">
@@ -27,7 +36,7 @@ export default function Hero({ hero }: Readonly<{ hero: MeetMeHero }>) {
           ))}
         </div>
       </div>
-      <MeetMePortrait caption={hero.portraitCaption} />
-    </section>
+      <MeetMePortrait caption={hero.portrait.caption} />
+    </header>
   );
 }

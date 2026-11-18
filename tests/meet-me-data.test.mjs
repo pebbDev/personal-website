@@ -5,8 +5,25 @@ import { meetMeContent } from "../src/features/meet-me/constants.ts";
 const allowedPlaceholders = new Set([
   "Meet Me",
   "Portrait placeholder",
-  "Professional details are pending approval.",
-  "More details are awaiting approval.",
+  "This page is a layout-only introduction to ",
+  "visual design and digital experiences",
+  ". It shows how ",
+  "creative work",
+  " can connect to ",
+  "product and business goals",
+  ". Personal details and professional claims remain under review. Neutral copy helps test the editorial rhythm without borrowing another person's identity or biography.",
+  "This preview explores ",
+  "measurable design decisions",
+  " while identity, contact links, and protected media remain under review for a later release.",
+  "Let's connect",
+  "email",
+  "linkedin",
+  "instagram",
+  "cv",
+  "Email",
+  "LinkedIn",
+  "Instagram",
+  "Download CV",
   "Organization pending approval",
   "Role pending",
   "Dates pending approval",
@@ -79,8 +96,8 @@ test("Meet Me content uses the approved neutral layout shape", () => {
   assert.equal(meetMeContent.certifications.length, 3);
   assert.equal(meetMeContent.skills.length, 7);
   assert.equal(meetMeContent.languages.length, 2);
-  assert.equal(meetMeContent.hero.introParagraphs.length, 2);
-  assert.notEqual(meetMeContent.hero.introParagraphs[0], meetMeContent.hero.introParagraphs[1]);
+  assert.equal(meetMeContent.hero.intro.length, 2);
+  assert.notDeepEqual(meetMeContent.hero.intro[0], meetMeContent.hero.intro[1]);
 });
 
 test("Meet Me content contains only neutral placeholders and no linked assets", () => {
@@ -96,4 +113,29 @@ test("Meet Me content contains only neutral placeholders and no linked assets", 
     ),
     "content must not include contact, media, or logo links"
   );
+});
+
+test("Meet Me hero rich intro contract", () => {
+  const { hero } = meetMeContent;
+  assert.ok(Array.isArray(hero.intro), "Hero intro must be a segmented pair of paragraphs");
+  assert.equal(hero.intro.length, 2);
+  assert.deepEqual(
+    hero.intro.map((paragraph) => paragraph.filter((segment) => segment.highlighted).length),
+    [3, 1]
+  );
+  assert.ok(
+    hero.intro.every((paragraph) => paragraph.every(({ text }) => typeof text === "string" && text.length > 0))
+  );
+  assert.deepEqual(
+    hero.contacts.map(({ id }) => id),
+    ["email", "linkedin", "instagram", "cv"]
+  );
+  assert.deepEqual(
+    hero.contacts.map(({ label }) => label),
+    ["Email", "LinkedIn", "Instagram", "Download CV"]
+  );
+  assert.ok(hero.contacts.every((contact) => contact.href === undefined));
+  assert.equal(hero.connectLabel, "Let's connect");
+  assert.equal(hero.portrait.caption, "Portrait placeholder");
+  assert.equal(hero.portrait.src, undefined);
 });

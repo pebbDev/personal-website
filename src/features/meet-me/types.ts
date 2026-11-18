@@ -1,7 +1,22 @@
+export type HeroTextSegment = Readonly<{ text: string; highlighted?: boolean }>;
+
+export type HeroContactId = "email" | "linkedin" | "instagram" | "cv";
+
+export type HeroContact = Readonly<{
+  id: HeroContactId;
+  label: string;
+  href?: string;
+}>;
+
+export type MeetMeHeroPortrait =
+  Readonly<{ caption: string; src?: never; alt?: never }> | Readonly<{ caption: string; src: string; alt: string }>;
+
 export type MeetMeHero = Readonly<{
   title: string;
-  introParagraphs: readonly [string, string];
-  portraitCaption: string;
+  intro: readonly [readonly HeroTextSegment[], readonly HeroTextSegment[]];
+  connectLabel: string;
+  contacts: readonly [HeroContact, HeroContact, HeroContact, HeroContact];
+  portrait: MeetMeHeroPortrait;
 }>;
 
 export type MeetMeExperience = Readonly<{

@@ -3,8 +3,32 @@ import type { MeetMeContent } from "./types";
 export const meetMeContent: MeetMeContent = {
   hero: {
     title: "Meet Me",
-    introParagraphs: ["Professional details are pending approval.", "More details are awaiting approval."],
-    portraitCaption: "Portrait placeholder",
+    intro: [
+      [
+        { text: "This page is a layout-only introduction to " },
+        { text: "visual design and digital experiences", highlighted: true },
+        { text: ". It shows how " },
+        { text: "creative work", highlighted: true },
+        { text: " can connect to " },
+        { text: "product and business goals", highlighted: true },
+        {
+          text: ". Personal details and professional claims remain under review. Neutral copy helps test the editorial rhythm without borrowing another person's identity or biography.",
+        },
+      ],
+      [
+        { text: "This preview explores " },
+        { text: "measurable design decisions", highlighted: true },
+        { text: " while identity, contact links, and protected media remain under review for a later release." },
+      ],
+    ],
+    connectLabel: "Let's connect",
+    contacts: [
+      { id: "email", label: "Email" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "instagram", label: "Instagram" },
+      { id: "cv", label: "Download CV" },
+    ],
+    portrait: { caption: "Portrait placeholder" },
   },
   experiences: [
     {

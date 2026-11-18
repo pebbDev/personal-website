@@ -22,6 +22,9 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
       heading: root.querySelector("h1")?.textContent?.trim(),
       introCount: root.querySelectorAll(".meet-me-intro > p").length,
       introParagraphs: Array.from(root.querySelectorAll(".meet-me-intro > p"), el => el.textContent?.trim()),
+      markCounts: Array.from(root.querySelectorAll(".meet-me-intro > p"), el => el.querySelectorAll("mark").length),
+      extraneousIntroSpans: root.querySelectorAll(".meet-me-intro > p > span").length,
+      heroTag: root.querySelector(".meet-me-hero")?.tagName,
       figureCount: root.querySelectorAll("figure.meet-me-portrait").length,
       inlinePortraitStyles: root.querySelectorAll(".meet-me-portrait[style], .meet-me-portrait [style]").length,
       portraitArtAspect: getComputedStyle(root.querySelector(".meet-me-portrait-art")).aspectRatio,
@@ -43,7 +46,18 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.headingCount, 1, "Meet Me should have one feature h1");
   assert.equal(hero.heading, "Meet Me");
   assert.equal(hero.introCount, 2, "Meet Me hero should contain two intro paragraphs");
-  assert.deepEqual(hero.introParagraphs, [...meetMeContent.hero.introParagraphs]);
+  assert.deepEqual(
+    hero.introParagraphs,
+    meetMeContent.hero.intro.map((paragraph) =>
+      paragraph
+        .map(({ text }) => text)
+        .join("")
+        .trim()
+    )
+  );
+  assert.deepEqual(hero.markCounts, [3, 1], "Hero must preserve four source-shaped marked text runs");
+  assert.equal(hero.extraneousIntroSpans, 0, "Plain intro segments must remain text nodes, not extra markup");
+  assert.equal(hero.heroTag, "HEADER", "Hero uses source-aligned header semantics");
   assert.equal(hero.figureCount, 1, "Meet Me should contain one semantic portrait figure");
   assert.equal(hero.inlinePortraitStyles, 0, "All Meet Me portrait styles belong in globals.css");
   assert.equal(hero.portraitArtAspect, "4 / 5", "Placeholder portrait geometry must remain 4:5");
