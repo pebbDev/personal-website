@@ -56,13 +56,41 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     Boolean,
     "Home action did not navigate to the Home preview"
   );
-  await evaluate(`window.location.hash = "#work"`);
-  await eventually(
-    () => evaluate(`!!document.querySelector(".work-page")`),
-    Boolean,
-    "Work preview did not restore after Home navigation"
-  );
-
+  await evaluate(`document.querySelector('.pill a[href="#work"]').click()`);
+  try {
+    await eventually(
+      () => evaluate(`location.hash === "#work" && !!document.querySelector(".work-page")`),
+      Boolean,
+      "Work preview did not restore and settle on #work after Home navigation"
+    );
+    const settled = await evaluate(`new Promise(resolve => {
+      const states = [];
+      const check = () => {
+        states.push({ hash: location.hash, work: !!document.querySelector(".work-page") });
+        if (states.length === 9) resolve(states);
+        else setTimeout(check, 50);
+      };
+      check();
+    })`);
+    assert.ok(
+      settled.every((state) => state.hash === "#work" && state.work),
+      `Home-to-Work hash changed after rendering: ${JSON.stringify(settled)}`
+    );
+  } catch (error) {
+    t.diagnostic(
+      `Home-to-Work restore state: ${JSON.stringify(
+        await evaluate(`(() => ({
+          href: location.href,
+          hash: location.hash,
+          home: !!document.querySelector(".home"),
+          work: !!document.querySelector(".work-page"),
+          placeholder: !!document.querySelector(".page-preview-frame"),
+          activeNav: Array.from(document.querySelectorAll(".pill a[aria-current=page]"), node => node.textContent.trim()),
+        }))()`)
+      )}`
+    );
+    throw error;
+  }
   await t.test("catalog renders the source-ordered rights-safe All preview", async () => {
     const catalog = await evaluate(`(() => {
       const root = document.querySelector(".work-page");
@@ -96,14 +124,14 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     })()`);
 
     assert.deepEqual(catalog.buttons, [
-      { label: "All 22", disabled: true, pressed: "true" },
-      { label: "UI/UX 9", disabled: true, pressed: "false" },
-      { label: "Branding 9", disabled: true, pressed: "false" },
-      { label: "Social Media 5", disabled: true, pressed: "false" },
-      { label: "Event 5", disabled: true, pressed: "false" },
-      { label: "E-commerce 2", disabled: true, pressed: "false" },
+      { label: "All 22", disabled: false, pressed: "true" },
+      { label: "UI/UX 9", disabled: false, pressed: "false" },
+      { label: "Branding 9", disabled: false, pressed: "false" },
+      { label: "Social Media 5", disabled: false, pressed: "false" },
+      { label: "Event 5", disabled: false, pressed: "false" },
+      { label: "E-commerce 2", disabled: false, pressed: "false" },
     ]);
-    assert.equal(catalog.filtersHint, true);
+    assert.equal(catalog.filtersHint, false);
     const expectedCategories = [
       [
         "uiux",
@@ -254,8 +282,8 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     assert.equal(keyboard.focused, true);
     assert.ok(keyboard.tabIndex >= 0);
     assert.notEqual(keyboard.outline, "none");
-    assert.equal(keyboard.chipsDisabled, true);
-    assert.equal(keyboard.chipFocused, false);
+    assert.equal(keyboard.chipsDisabled, false);
+    assert.equal(keyboard.chipFocused, true);
     assert.equal(keyboard.cardFocusable, 0);
     assert.equal(keyboard.visibleCards, true);
     assert.equal(keyboard.reducedMotion, true);
@@ -291,4 +319,74 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
       await browser.motion("no-preference");
     }
   });
+});
+test("exact Work legacy route coexists with root preview and safe nav", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  const { send, evaluate } = browser;
+  const workUrl = `${browser.url}/work.html`;
+
+  await send("Page.navigate", { url: workUrl });
+  await eventually(
+    () => evaluate(`document.readyState === "complete" && !!document.querySelector(".work-page")`),
+    Boolean,
+    "Exact Work route did not mount"
+  );
+
+  const inspect = () =>
+    evaluate(`(() => ({
+    path: location.pathname,
+    h1: document.querySelector(".work-page h1")?.textContent.trim(),
+    workPageCount: document.querySelectorAll(".work-page").length,
+    navCount: document.querySelectorAll(".topnav").length,
+    mainCount: document.querySelectorAll("main").length,
+    compactFooterCount: document.querySelectorAll(".work-page footer.footer--compact").length,
+    active: Array.from(document.querySelectorAll(".pill a[aria-current=page]"), node => node.textContent.trim()),
+    homeHref: document.querySelector(".work-closing a")?.getAttribute("href"),
+    navTargets: Array.from(document.querySelectorAll(".pill a"), node => [node.textContent.trim(), node.getAttribute("href")]),
+    cardAnchors: document.querySelectorAll(".work-project-card a").length,
+  }))()`);
+
+  assert.deepEqual(await inspect(), {
+    path: "/work.html",
+    h1: "My Lab",
+    workPageCount: 1,
+    navCount: 1,
+    mainCount: 1,
+    compactFooterCount: 1,
+    active: ["My Lab"],
+    homeHref: "/#home",
+    navTargets: [
+      ["Come In", "/#home"],
+      ["Meet Me", "/#meet-me"],
+      ["My Lab", "/work.html"],
+    ],
+    cardAnchors: 0,
+  });
+
+  await send("Page.reload", { ignoreCache: true });
+  await eventually(() => evaluate(`!!document.querySelector(".work-page")`), Boolean, "Work refresh failed");
+  assert.equal((await inspect()).path, "/work.html");
+
+  await evaluate(`document.querySelector('.pill a[href="/#meet-me"]').click()`);
+  await eventually(
+    () =>
+      evaluate(
+        `location.pathname === "/" && location.hash === "#meet-me" && !!document.querySelector(".page-preview-frame")`
+      ),
+    Boolean,
+    "Meet Me preview did not mount from Work"
+  );
+
+  await send("Page.navigate", { url: `${browser.url}/#work` });
+  await eventually(() => evaluate(`!!document.querySelector(".work-page")`), Boolean, "Root Work preview regressed");
+  assert.equal(await evaluate(`location.hash`), "#work");
+
+  await send("Page.navigate", { url: `${browser.url}/missing-work.html` });
+  await eventually(
+    () => evaluate(`document.readyState === "complete" && !!document.body`),
+    Boolean,
+    "Unknown path navigation incomplete"
+  );
+  assert.equal(await evaluate(`document.querySelector(".work-page") === null`), true);
+  assert.ok(await evaluate(`document.body.textContent.includes("404")`));
 });

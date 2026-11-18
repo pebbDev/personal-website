@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/Button";
 
-export default function Closing() {
+export default function Closing({ homeHref }: Readonly<{ homeHref: string }>) {
   return (
     <section className="work-closing" aria-labelledby="work-closing-title">
       <h2 id="work-closing-title" className="work-closing-title">
         Have a project in mind?
       </h2>
       <div className="work-closing-actions">
-        <Button href="#home" variant="line" className="work-closing-action">
+        <Button href={homeHref} variant="line" className="work-closing-action">
           Home
         </Button>
         <span

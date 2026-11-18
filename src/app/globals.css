@@ -2641,7 +2641,14 @@ a.home-journey-resume:focus-visible svg {
   font: 400 15px/1 var(--font-sub);
   white-space: nowrap;
   opacity: 1;
-  cursor: not-allowed;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+.work-chip:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
 }
 .work-chip--active {
   background: var(--foreground);
@@ -2652,15 +2659,13 @@ a.home-journey-resume:focus-visible svg {
   font-size: 13px;
   opacity: 0.75;
 }
-.work-filter-status {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font: 400 13px/1.5 var(--font-sub);
+.work-category[hidden] {
+  display: none;
 }
 .work-category {
   padding-top: 64px;
 }
-.work-category + .work-category {
+.work-category:not([hidden]) + .work-category:not([hidden]) {
   margin-top: 64px;
   border-top: 1px solid var(--border);
 }
@@ -2704,7 +2709,6 @@ a.home-journey-resume:focus-visible svg {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface-subtle);
-  transition: transform 0.8s var(--ease);
 }
 .work-project-cover-label {
   padding: 12px;
@@ -2778,12 +2782,9 @@ a.home-journey-resume:focus-visible svg {
   margin-top: 48px;
 }
 @media (hover: hover) {
-  .work-project-card:hover .work-project-cover {
-    transform: scale(1.03);
-  }
-  .work-project-card:hover .work-project-affordance {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  .work-chip:not(.work-chip--active):hover {
+    border-color: var(--foreground);
+    transform: translateY(-2px);
   }
 }
 @media (max-width: 1000px) {
@@ -2832,10 +2833,10 @@ a.home-journey-resume:focus-visible svg {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .work-project-cover {
+  .work-chip {
     transition: none;
   }
-  .work-project-card:hover .work-project-cover {
+  .work-chip:not(.work-chip--active):hover {
     transform: none;
   }
 }

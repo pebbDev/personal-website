@@ -1,5 +1,7 @@
 export type WorkCategoryId = "uiux" | "branding" | "social" | "event" | "ecommerce";
 
+export type WorkFilterId = "all" | WorkCategoryId;
+
 export type WorkProject = Readonly<{
   id: string;
   sourceHref: string;

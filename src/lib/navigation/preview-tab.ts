@@ -28,9 +28,8 @@ function subscribe(onChange: () => void) {
 
   const onHashChange = () => {
     rememberTab();
-    // Native hash transitions need syncing with the Next.js canonical URL.
-    // replaceState is patched by Next.js and preserves this history entry.
-    window.history.replaceState(null, "", window.location.href);
+    // The location fragment already changed natively. Avoid a redundant
+    // Next-patched replaceState that can replay a stale preview hash.
     onChange();
   };
   window.addEventListener("hashchange", onHashChange);
