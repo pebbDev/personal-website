@@ -2588,3 +2588,33 @@ a.home-journey-resume:focus-visible svg {
     transition: none;
   }
 }
+
+/* PER-17 Meet Me portrait baseline — all feature styling stays global. */
+.meet-me-portrait {
+  margin: 0;
+}
+.meet-me-portrait-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f0efec, #dedcd7);
+}
+.meet-me-portrait-head {
+  position: absolute;
+  top: 18%;
+  left: 32%;
+  width: 36%;
+  height: 36%;
+  border-radius: 50%;
+  background-color: #c7c4be;
+}
+.meet-me-portrait-shoulders {
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  width: 76%;
+  height: 42%;
+  border-radius: 50% 50% 0 0;
+  background-color: #b9b6b0;
+}

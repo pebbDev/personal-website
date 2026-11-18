@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { eventually, openBrowser } from "./browser-helper.mjs";
+import { meetMeContent } from "../src/features/meet-me/constants.ts";
 
 test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
@@ -20,7 +21,10 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
       headingCount: root.querySelectorAll("h1").length,
       heading: root.querySelector("h1")?.textContent?.trim(),
       introCount: root.querySelectorAll(".meet-me-intro > p").length,
-      figureCount: root.querySelectorAll(".meet-me-portrait").length,
+      introParagraphs: Array.from(root.querySelectorAll(".meet-me-intro > p"), el => el.textContent?.trim()),
+      figureCount: root.querySelectorAll("figure.meet-me-portrait").length,
+      inlinePortraitStyles: root.querySelectorAll(".meet-me-portrait[style], .meet-me-portrait [style]").length,
+      portraitArtAspect: getComputedStyle(root.querySelector(".meet-me-portrait-art")).aspectRatio,
       caption: root.querySelector(".meet-me-portrait figcaption")?.textContent?.trim(),
       connectSlots: root.querySelectorAll(".meet-me-connect [aria-hidden='true']").length,
       connectControls: root.querySelectorAll(".meet-me-connect a, .meet-me-connect button").length,
@@ -36,7 +40,10 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.headingCount, 1, "Meet Me should have one feature h1");
   assert.equal(hero.heading, "Meet Me");
   assert.equal(hero.introCount, 2, "Meet Me hero should contain two intro paragraphs");
-  assert.equal(hero.figureCount, 1, "Meet Me should contain one portrait figure");
+  assert.deepEqual(hero.introParagraphs, [...meetMeContent.hero.introParagraphs]);
+  assert.equal(hero.figureCount, 1, "Meet Me should contain one semantic portrait figure");
+  assert.equal(hero.inlinePortraitStyles, 0, "All Meet Me portrait styles belong in globals.css");
+  assert.equal(hero.portraitArtAspect, "4 / 5", "Placeholder portrait geometry must remain 4:5");
   assert.equal(hero.caption, "Portrait placeholder", "Portrait caption should remain non-identifying");
   assert.equal(hero.connectSlots, 4, "Meet Me should show four decorative connection slots");
   assert.equal(hero.connectControls, 0, "Decorative connection slots must not be interactive");
