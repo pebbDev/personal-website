@@ -23,7 +23,7 @@ export default function Hero({ hero }: Readonly<{ hero: MeetMeHero }>) {
         </div>
         <MeetMeConnect label={hero.connectLabel} contacts={hero.contacts} />
       </div>
-      <MeetMePortrait caption={hero.portrait.caption} />
+      <MeetMePortrait portrait={hero.portrait} />
     </header>
   );
 }

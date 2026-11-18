@@ -126,6 +126,41 @@ test("Meet Me contact semantics and Lucide icons", { timeout: 120000 }, async (t
   assert.ok(result.cursors.every((cursor) => cursor !== "pointer"));
 });
 
+test("Meet Me portrait fallback semantics", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('figure.meet-me-portrait'))"),
+    Boolean,
+    "Missing semantic portrait figure",
+    20000
+  );
+
+  const portrait = await browser.evaluate(`(() => {
+    const figure = document.querySelector("figure.meet-me-portrait");
+    const art = figure.querySelector(".meet-me-portrait-art");
+    const caption = figure.querySelector("figcaption");
+    return {
+      tag: figure.tagName,
+      figureRole: figure.getAttribute("role"),
+      artRole: art.getAttribute("role"),
+      artLabel: art.getAttribute("aria-label"),
+      artAspect: getComputedStyle(art).aspectRatio,
+      caption: caption?.textContent?.trim(),
+      imageCount: figure.querySelectorAll("img, picture, source, video, [src], [poster]").length,
+      inlineStyles: figure.querySelectorAll("[style]").length + Number(figure.hasAttribute("style")),
+    };
+  })()`);
+  assert.equal(portrait.tag, "FIGURE");
+  assert.equal(portrait.figureRole, null, "Figure must retain figure/caption semantics");
+  assert.equal(portrait.artRole, "img", "Only fallback art should be an illustrative image");
+  assert.equal(portrait.artLabel, "Neutral portrait placeholder");
+  assert.equal(portrait.artAspect, "4 / 5");
+  assert.equal(portrait.caption, "Portrait placeholder");
+  assert.equal(portrait.imageCount, 0);
+  assert.equal(portrait.inlineStyles, 0);
+});
+
 test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
