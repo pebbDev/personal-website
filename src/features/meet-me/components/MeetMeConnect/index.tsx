@@ -24,6 +24,7 @@ export default function MeetMeConnect({
               className="meet-me-connect-icon"
               role="img"
               aria-label={contact.label + " — unavailable in preview"}
+              data-tip={contact.id === "cv" ? "CV unavailable" : undefined}
             >
               <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
             </span>

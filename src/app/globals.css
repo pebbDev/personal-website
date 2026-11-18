@@ -2683,6 +2683,41 @@ a.home-journey-resume:focus-visible svg {
   border-radius: 50%;
   color: var(--foreground);
   background: var(--surface);
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s;
+}
+.meet-me-connect-icon:hover {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+.meet-me-connect-icon[data-tip] {
+  position: relative;
+}
+.meet-me-connect-icon[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font: 500 12px/1 var(--font-sub);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 0.3s var(--ease),
+    transform 0.3s var(--ease);
+}
+.meet-me-connect-icon[data-tip]:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 .meet-me-portrait {
   position: relative;
@@ -3038,6 +3073,13 @@ a.home-journey-resume:focus-visible svg {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .meet-me-connect-icon,
+  .meet-me-connect-icon[data-tip]::after {
+    transition: none;
+  }
+  .meet-me-connect-icon[data-tip]::after {
+    transform: translate(-50%, 0);
+  }
   .meet-me-timeline-entry::after,
   .meet-me-timeline-logo,
   .meet-me-timeline-organization,

@@ -448,3 +448,125 @@ test("Meet Me Hero nine-viewport geometry and reduced motion", { timeout: 180000
   assert.equal(reduced.headerCount, 1);
   await browser.motion("no-preference");
 });
+
+test("Meet Me Connect hover matches source without enabling inactive contacts", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-connect-icon').length"),
+    (count) => count === 4,
+    "Four Meet Me contact slots did not render",
+    20000
+  );
+  await browser.resize(901);
+
+  const snapshot = (index) =>
+    browser.evaluate(
+      `(() => {
+      const items = [...document.querySelectorAll(".meet-me-connect-icon")];
+      const item = items[INDEX];
+      const style = getComputedStyle(item);
+      const tip = getComputedStyle(item, "::after");
+      const rect = item.getBoundingClientRect();
+      const connect = document.querySelector(".meet-me-connect");
+      return {
+        x: rect.x + rect.width / 2,
+        y: rect.y + rect.height / 2,
+        size: [rect.width, rect.height],
+        background: style.backgroundColor,
+        foreground: style.color,
+        border: style.borderTopColor,
+        transition: style.transitionDuration,
+        cursor: style.cursor,
+        role: item.getAttribute("role"),
+        label: item.getAttribute("aria-label"),
+        tipContent: tip.content,
+        tipOpacity: tip.opacity,
+        tipTransition: tip.transitionDuration,
+        tipBottom: tip.bottom,
+        tipTransform: tip.transform,
+        tipPointerEvents: tip.pointerEvents,
+        unsafeControls: connect.querySelectorAll("a, button, [href], [download], [tabindex], [onclick]").length,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    })()`.replace("INDEX", String(index))
+    );
+
+  const moveTo = async (item) => {
+    await browser.send("Input.dispatchMouseEvent", {
+      type: "mouseMoved",
+      x: item.x,
+      y: item.y,
+    });
+  };
+  const rest = await snapshot(0);
+  assert.deepEqual(rest.size, [44, 44]);
+  assert.equal(rest.unsafeControls, 0);
+  assert.notEqual(rest.cursor, "pointer");
+  assert.equal(rest.role, "img");
+  assert.match(rest.label, /unavailable in preview/);
+
+  for (const index of [0, 1, 2, 3]) {
+    const before = await snapshot(index);
+    await moveTo(before);
+    const hovered = await eventually(
+      () => snapshot(index),
+      (state) => state.background === "rgb(17, 17, 17)" && state.foreground === "rgb(255, 255, 255)",
+      "Source hover inversion must settle on slot " + index,
+      3500
+    );
+    assert.equal(hovered.background, "rgb(17, 17, 17)", "Source hover background absent on slot " + index);
+    assert.equal(hovered.border, "rgb(17, 17, 17)");
+    assert.equal(hovered.foreground, "rgb(255, 255, 255)");
+    assert.equal(hovered.transition, "0.2s, 0.2s, 0.2s");
+    assert.deepEqual(hovered.size, [44, 44]);
+    assert.notEqual(hovered.cursor, "pointer");
+    assert.equal(hovered.unsafeControls, 0);
+    assert.ok(hovered.overflow <= 1);
+    if (index === 3) {
+      const cvHover = await eventually(
+        () => snapshot(index),
+        (state) => state.tipOpacity === "1",
+        "CV tooltip must fully reveal after 300ms source transition",
+        3500
+      );
+      assert.equal(cvHover.tipContent, '"CV unavailable"');
+      assert.equal(cvHover.tipBottom, "50px", "Tooltip sits 8px above the 42px inner box (44px including border)");
+      assert.equal(cvHover.tipTransition, "0.3s, 0.3s");
+      assert.equal(cvHover.tipPointerEvents, "none");
+    }
+    await browser.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 });
+    const after = await eventually(
+      () => snapshot(index),
+      (state) =>
+        state.background === before.background &&
+        state.foreground === before.foreground &&
+        (index !== 3 || state.tipOpacity === "0"),
+      "Contact hover and CV tooltip must fully reset",
+      3500
+    );
+    assert.equal(after.background, before.background, "Hover must restore idle background");
+    assert.equal(after.foreground, before.foreground, "Hover must restore idle foreground");
+    if (index === 3) {
+      assert.equal(after.tipOpacity, "0", "CV tooltip must disappear on mouseout");
+    }
+  }
+
+  await browser.motion("reduce");
+  const cv = await snapshot(3);
+  assert.ok(
+    cv.transition.split(", ").every((duration) => Number.parseFloat(duration) <= 0.00001),
+    "Reduced motion must eliminate perceptible icon transitions"
+  );
+  assert.ok(
+    cv.tipTransition.split(", ").every((duration) => Number.parseFloat(duration) <= 0.00001),
+    "Reduced motion must eliminate perceptible tooltip transitions"
+  );
+  assert.match(cv.tipTransform, /, 0\)$/, "Reduced motion tooltip must not move vertically");
+  await moveTo(cv);
+  const reducedHover = await snapshot(3);
+  assert.equal(reducedHover.background, "rgb(17, 17, 17)");
+  assert.equal(reducedHover.tipOpacity, "1");
+  assert.equal(reducedHover.unsafeControls, 0);
+  await browser.motion("no-preference");
+});
