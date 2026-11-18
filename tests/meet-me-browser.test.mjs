@@ -155,3 +155,98 @@ test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
   assert.equal(structure.certificationCount, 3, "Certifications should contain three ordered steps");
   assert.equal(structure.hash, "#meet-me", "Inspecting the inert TOC should preserve the preview hash");
 });
+
+test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-hero'))"),
+    Boolean,
+    "Meet Me absent"
+  );
+
+  const snapshot = await browser.evaluate(`(() => {
+    const root = document.querySelector(".meet-me");
+    const buttons = [...root.querySelectorAll(".meet-me-closing button")];
+    const footer = root.querySelector("footer.footer--compact");
+    return {
+      closing: root.querySelectorAll(".meet-me-closing").length,
+      actions: buttons.map((button) => ({ disabled: button.disabled, type: button.type, classes: button.className })),
+      unsafeAnchors: root.querySelectorAll(".meet-me-closing a, .meet-me-closing [href]").length,
+      footerCount: root.querySelectorAll("footer").length,
+      footerText: footer?.textContent?.trim(),
+      footerBackground: footer ? getComputedStyle(footer).backgroundColor : null,
+      navCount: document.querySelectorAll("nav").length
+    };
+  })()`);
+  assert.equal(snapshot.closing, 1);
+  assert.equal(snapshot.actions.length, 2, "Two visual CTAs expected");
+  assert.ok(snapshot.actions.every((action) => action.disabled && action.type === "button"));
+  assert.match(snapshot.actions[0].classes, /btn--line/);
+  assert.match(snapshot.actions[1].classes, /btn--dark/);
+  assert.equal(snapshot.unsafeAnchors, 0, "CTAs must not navigate");
+  assert.equal(snapshot.footerCount, 1, "One compact footer expected");
+  assert.equal(snapshot.footerText, "Personal website layout preview.");
+  assert.equal(snapshot.footerBackground, "rgb(17, 17, 17)");
+  assert.equal(snapshot.navCount, 1, "Shared Navbar should remain unique");
+});
+
+test("Meet Me layout breakpoints", { timeout: 180000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-hero'))"),
+    Boolean,
+    "Meet Me absent"
+  );
+
+  for (const width of [390, 640, 641, 768, 900, 901, 1100, 1101, 1440]) {
+    await browser.resize(width);
+    const m = await browser.evaluate(`(() => {
+      const css = (selector) => getComputedStyle(document.querySelector(selector));
+      const count = (selector) => css(selector).gridTemplateColumns.split(" ").filter(Boolean).length;
+      return {
+        width: innerWidth,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+        containerWidth: document.querySelector(".meet-me-container").getBoundingClientRect().width,
+        tocDisplay: css(".meet-me-toc").display,
+        tocPosition: css(".meet-me-toc").position,
+        tocTop: css(".meet-me-toc").top,
+        heroColumns: count(".meet-me-hero"),
+        portraitAspect: css(".meet-me-portrait-art").aspectRatio,
+        portraitTransform: css(".meet-me-portrait").transform,
+        logoWidth: document.querySelector(".meet-me-timeline-logo").getBoundingClientRect().width,
+        rowColumns: count(".meet-me-rows > div"),
+        sectionOpacity: css(".meet-me-section").opacity,
+      };
+    })()`);
+    assert.equal(m.width, width);
+    assert.ok(m.overflow <= 1, `Horizontal overflow ${m.overflow}px at ${width}`);
+    assert.ok(m.containerWidth <= 1161, `Wrapper exceeds source maximum at ${width}`);
+    assert.equal(m.tocDisplay === "none", width <= 1100, `TOC visibility at ${width}`);
+    if (width > 1100) {
+      assert.equal(m.tocPosition, "sticky", `Desktop TOC sticky at ${width}`);
+      assert.equal(m.tocTop, "110px");
+    }
+    assert.equal(m.heroColumns, width <= 900 ? 1 : 2, `Hero columns at ${width}`);
+    assert.equal(m.portraitAspect, "4 / 5", `Portrait aspect at ${width}`);
+    if (width <= 900) assert.equal(m.portraitTransform, "none", `Mobile portrait must not rotate at ${width}`);
+    else assert.notEqual(m.portraitTransform, "none", `Desktop portrait tilt required at ${width}`);
+    assert.equal(m.logoWidth, width <= 640 ? 48 : 64, `Timeline logo at ${width}`);
+    assert.equal(m.rowColumns, width <= 640 ? 1 : 2, `Detail grid columns at ${width}`);
+    assert.equal(m.sectionOpacity, "1", `Sections must remain visible at ${width}`);
+  }
+  await browser.motion("reduce");
+  await browser.resize(901);
+  const reduced = await browser.evaluate(`(() => ({
+    opacity: getComputedStyle(document.querySelector(".meet-me-section")).opacity,
+    transition: getComputedStyle(document.querySelector(".meet-me-timeline-logo")).transitionDuration,
+  }))()`);
+  assert.equal(reduced.opacity, "1");
+  assert.ok(
+    Number.parseFloat(reduced.transition) <= 0.00001,
+    `Reduced motion should eliminate perceptible timeline transitions; observed ${reduced.transition}`
+  );
+  await browser.motion("no-preference");
+  assert.equal(await browser.evaluate("getComputedStyle(document.querySelector('.meet-me-section')).opacity"), "1");
+});

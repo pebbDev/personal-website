@@ -4,6 +4,8 @@ import Education from "./sections/education";
 import Certifications from "./sections/certifications";
 import Skills from "./sections/skills";
 import Languages from "./sections/languages";
+import Closing from "./sections/closing";
+import Footer from "@/components/layout/Footer";
 import { meetMeContent } from "./constants";
 
 export default function MeetMe() {
@@ -40,7 +42,9 @@ export default function MeetMe() {
             <Languages rows={meetMeContent.languages} />
           </article>
         </div>
+        <Closing heading={meetMeContent.closingHeading} />
       </div>
+      <Footer variant="compact" notice="Personal website layout preview." />
     </div>
   );
 }
