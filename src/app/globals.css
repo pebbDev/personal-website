@@ -2663,10 +2663,16 @@ a.home-journey-resume:focus-visible svg {
   padding: 0 1px;
 }
 .meet-me-connect {
+  margin-top: 28px;
+}
+.meet-me-connect-label {
+  margin: 0 0 12px;
+  font: 400 16px/1 var(--font-sub);
+}
+.meet-me-connect-items {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 28px;
 }
 .meet-me-connect-icon {
   display: grid;

@@ -1,14 +1,7 @@
 import { Fragment } from "react";
-import { CircleDot, CirclePlus, Network, SquarePlus } from "lucide-react";
+import MeetMeConnect from "../components/MeetMeConnect";
 import MeetMePortrait from "../components/MeetMePortrait";
 import type { MeetMeHero } from "../types";
-
-const connectIcons = [
-  { key: "orbit", Icon: CircleDot },
-  { key: "nodes", Icon: Network },
-  { key: "frame", Icon: SquarePlus },
-  { key: "lines", Icon: CirclePlus },
-] as const;
 
 export default function Hero({ hero }: Readonly<{ hero: MeetMeHero }>) {
   return (
@@ -28,13 +21,7 @@ export default function Hero({ hero }: Readonly<{ hero: MeetMeHero }>) {
             </p>
           ))}
         </div>
-        <div className="meet-me-connect">
-          {connectIcons.map(({ key, Icon }) => (
-            <span className="meet-me-connect-icon" key={key} aria-hidden="true">
-              <Icon size={24} strokeWidth={1.5} />
-            </span>
-          ))}
-        </div>
+        <MeetMeConnect label={hero.connectLabel} contacts={hero.contacts} />
       </div>
       <MeetMePortrait caption={hero.portrait.caption} />
     </header>

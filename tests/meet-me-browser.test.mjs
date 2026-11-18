@@ -29,9 +29,9 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
       inlinePortraitStyles: root.querySelectorAll(".meet-me-portrait[style], .meet-me-portrait [style]").length,
       portraitArtAspect: getComputedStyle(root.querySelector(".meet-me-portrait-art")).aspectRatio,
       caption: root.querySelector(".meet-me-portrait figcaption")?.textContent?.trim(),
-      connectSlots: root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon[aria-hidden='true']").length,
-      lucideIcons: root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon > svg.lucide").length,
-      iconDimensions: Array.from(root.querySelectorAll(".meet-me-connect > .meet-me-connect-icon > svg")).map(
+      connectSlots: root.querySelectorAll(".meet-me-connect-items > .meet-me-connect-icon[role='img']").length,
+      lucideIcons: root.querySelectorAll(".meet-me-connect-items > .meet-me-connect-icon > svg.lucide").length,
+      iconDimensions: Array.from(root.querySelectorAll(".meet-me-connect-items > .meet-me-connect-icon > svg")).map(
         (icon) => [icon.getAttribute("width"), icon.getAttribute("height"), icon.getAttribute("stroke-width")]
       ),
       connectControls: root.querySelectorAll(".meet-me-connect a, .meet-me-connect button").length,
@@ -66,12 +66,64 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.lucideIcons, 4, "All four Meet Me icons must use the installed Lucide library");
   assert.deepEqual(
     hero.iconDimensions,
-    Array.from({ length: 4 }, () => ["24", "24", "1.5"])
+    Array.from({ length: 4 }, () => ["18", "18", "1.8"])
   );
-  assert.equal(hero.connectControls, 0, "Decorative connection slots must not be interactive");
+  assert.equal(hero.connectControls, 0, "Uncleared contact slots must not be interactive");
   assert.equal(hero.portraitImages, 0, "Portrait must not load real media");
   assert.equal(hero.mediaAndLinks, 0, "Meet Me hero must not contain media or links");
   assert.equal(hero.navCount, 1, "Meet Me must not render a second Navbar");
+});
+
+test("Meet Me contact semantics and Lucide icons", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-connect'))"),
+    Boolean,
+    "Missing Meet Me Connect section",
+    20000
+  );
+
+  const result = await browser.evaluate(`(() => {
+    const root = document.querySelector(".meet-me-connect");
+    const items = [...root.querySelectorAll(".meet-me-connect-items > .meet-me-connect-icon")];
+    return {
+      label: root.querySelector("p")?.textContent?.trim(),
+      roles: items.map((el) => el.getAttribute("role")),
+      names: items.map((el) => el.getAttribute("aria-label")),
+      icons: items.map((el) => el.querySelector("svg")?.getAttribute("class")),
+      attributes: items.map((el) => {
+        const svg = el.querySelector("svg");
+        return [svg?.getAttribute("width"), svg?.getAttribute("height"), svg?.getAttribute("stroke-width"), svg?.getAttribute("aria-hidden")];
+      }),
+      itemSizes: items.map((el) => [el.getBoundingClientRect().width, el.getBoundingClientRect().height]),
+      clickables: root.querySelectorAll("a[href], button, [download], [tabindex]").length,
+      cursors: items.map((el) => getComputedStyle(el).cursor),
+    };
+  })()`);
+
+  assert.equal(result.label, "Let's connect");
+  assert.deepEqual(result.roles, ["img", "img", "img", "img"]);
+  assert.deepEqual(result.names, [
+    "Email — unavailable in preview",
+    "LinkedIn — unavailable in preview",
+    "Instagram — unavailable in preview",
+    "Download CV — unavailable in preview",
+  ]);
+  assert.deepEqual(
+    result.icons.map((value) => value.split(" ").find((className) => className.startsWith("lucide-"))),
+    ["lucide-mail", "lucide-briefcase-business", "lucide-camera", "lucide-file-down"]
+  );
+  assert.deepEqual(
+    result.attributes,
+    Array.from({ length: 4 }, () => ["18", "18", "1.8", "true"])
+  );
+  assert.deepEqual(
+    result.itemSizes,
+    Array.from({ length: 4 }, () => [44, 44])
+  );
+  assert.equal(result.clickables, 0);
+  assert.ok(result.cursors.every((cursor) => cursor !== "pointer"));
 });
 
 test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
