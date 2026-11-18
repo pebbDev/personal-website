@@ -359,3 +359,92 @@ test("Meet Me layout breakpoints", { timeout: 180000 }, async (t) => {
   await browser.motion("no-preference");
   assert.equal(await browser.evaluate("getComputedStyle(document.querySelector('.meet-me-section')).opacity"), "1");
 });
+
+test("Meet Me Hero nine-viewport geometry and reduced motion", { timeout: 180000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('header.meet-me-hero .meet-me-connect'))"),
+    Boolean,
+    "Meet Me Hero did not render",
+    20000
+  );
+
+  for (const width of [390, 640, 641, 768, 900, 901, 1100, 1101, 1440]) {
+    await browser.resize(width);
+    const hero = await browser.evaluate(`(() => {
+      const root = document.querySelector("header.meet-me-hero");
+      const portrait = root.querySelector(".meet-me-portrait");
+      const intro = root.querySelector(".meet-me-intro");
+      const icons = [...root.querySelectorAll(".meet-me-connect-icon")];
+      const css = (el) => getComputedStyle(el);
+      return {
+        overflow: document.documentElement.scrollWidth - innerWidth,
+        heroColumns: css(root).gridTemplateColumns.split(" ").filter(Boolean).length,
+        heroPaddingTop: css(root).paddingTop,
+        wrapperWidth: document.querySelector(".meet-me-container").getBoundingClientRect().width,
+        titleCount: root.querySelectorAll("h1").length,
+        paragraphCount: intro.querySelectorAll(":scope > p").length,
+        marks: [...intro.querySelectorAll(":scope > p")].map((p) => p.querySelectorAll("mark").length),
+        highlightWeight: css(intro.querySelector("mark")).fontWeight,
+        contactLabel: root.querySelector(".meet-me-connect-label").textContent.trim(),
+        contactLabelFont: css(root.querySelector(".meet-me-connect-label")).fontSize,
+        iconSizes: icons.map((el) => [el.getBoundingClientRect().width, el.getBoundingClientRect().height]),
+        iconGlyphs: icons.map((el) => [el.querySelector("svg")?.getAttribute("width"), el.querySelector("svg")?.getAttribute("height")]),
+        fakeControls: root.querySelectorAll(".meet-me-connect a, .meet-me-connect button, .meet-me-connect [tabindex]").length,
+        portraitAspect: css(portrait.querySelector(".meet-me-portrait-art")).aspectRatio,
+        portraitWidth: parseFloat(css(portrait).width),
+        portraitTransform: css(portrait).transform,
+        captionLeft: css(portrait.querySelector("figcaption")).left,
+        captionBottom: css(portrait.querySelector("figcaption")).bottom,
+        invisibleNodes: [...root.querySelectorAll("h1, .meet-me-intro p, .meet-me-connect-label, .meet-me-portrait-caption")]
+          .filter((el) => css(el).opacity === "0" || css(el).visibility === "hidden").length,
+      };
+    })()`);
+    assert.ok(hero.overflow <= 1, "Hero overflow at width " + width);
+    assert.ok(hero.wrapperWidth <= 1161, "Wrapper max width at " + width);
+    assert.equal(hero.heroColumns, width <= 900 ? 1 : 2);
+    assert.equal(hero.heroPaddingTop, width <= 900 ? "56px" : "128px");
+    assert.equal(hero.titleCount, 1);
+    assert.equal(hero.paragraphCount, 2);
+    assert.deepEqual(hero.marks, [3, 1]);
+    assert.equal(hero.highlightWeight, "500");
+    assert.equal(hero.contactLabel, "Let's connect");
+    assert.equal(hero.contactLabelFont, "16px");
+    assert.deepEqual(
+      hero.iconSizes,
+      Array.from({ length: 4 }, () => [44, 44])
+    );
+    assert.deepEqual(
+      hero.iconGlyphs,
+      Array.from({ length: 4 }, () => ["18", "18"])
+    );
+    assert.equal(hero.fakeControls, 0);
+    assert.equal(hero.portraitAspect, "4 / 5");
+    assert.equal(hero.captionLeft, "14px");
+    assert.equal(hero.captionBottom, "14px");
+    assert.equal(hero.invisibleNodes, 0);
+    if (width <= 900) {
+      assert.ok(hero.portraitWidth <= 380.5);
+      assert.equal(hero.portraitTransform, "none");
+    } else {
+      assert.notEqual(hero.portraitTransform, "none");
+    }
+  }
+
+  await browser.motion("reduce");
+  await browser.resize(390);
+  const reduced = await browser.evaluate(`(() => {
+    const root = document.querySelector(".meet-me-hero");
+    return {
+      hidden: [...root.querySelectorAll("h1, .meet-me-intro p, .meet-me-connect-label, .meet-me-portrait-caption")]
+        .filter((el) => getComputedStyle(el).opacity === "0" || getComputedStyle(el).visibility === "hidden").length,
+      iconCount: root.querySelectorAll("svg.lucide").length,
+      headerCount: document.querySelectorAll("header.meet-me-hero").length,
+    };
+  })()`);
+  assert.equal(reduced.hidden, 0);
+  assert.equal(reduced.iconCount, 4);
+  assert.equal(reduced.headerCount, 1);
+  await browser.motion("no-preference");
+});
