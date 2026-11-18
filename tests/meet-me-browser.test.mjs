@@ -161,6 +161,35 @@ test("Meet Me portrait fallback semantics", { timeout: 120000 }, async (t) => {
   assert.equal(portrait.inlineStyles, 0);
 });
 
+test("Meet Me Experience heading and list contract", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('#experience .meet-me-timeline-entry').length"),
+    (count) => count === 6,
+    "Expected six Experience items",
+    20000
+  );
+  const result = await browser.evaluate(`(() => ({
+    eyebrow: document.querySelector("#experience .meet-me-section-eyebrow")?.textContent.trim(),
+    heading: document.querySelector("#experience h2")?.textContent.trim(),
+    orderedList: document.querySelector("#experience > ol.meet-me-timeline")?.tagName,
+    headings: [...document.querySelectorAll("#experience .meet-me-timeline-entry h3")].length,
+    bullets: [...document.querySelectorAll("#experience .meet-me-timeline-entry")].map(
+      (item) => item.querySelectorAll("details li").length
+    ),
+    closed: [...document.querySelectorAll("#experience details")].every((details) => !details.open),
+    media: document.querySelectorAll("#experience img, #experience a[href]").length,
+  }))()`);
+  assert.equal(result.eyebrow, "01 · Experience");
+  assert.equal(result.heading, "Where I’ve been.");
+  assert.equal(result.orderedList, "OL");
+  assert.equal(result.headings, 6);
+  assert.deepEqual(result.bullets, [6, 6, 2, 4, 3, 0]);
+  assert.equal(result.closed, true);
+  assert.equal(result.media, 0);
+});
+
 test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });

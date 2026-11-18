@@ -5,8 +5,8 @@ export default function Experience({ entries }: Readonly<{ entries: readonly Mee
   return (
     <section id="experience" className="meet-me-section" aria-labelledby="meet-me-experience-title">
       <header className="meet-me-section-header">
-        <span className="meet-me-section-eyebrow">01 / 05</span>
-        <h2 id="meet-me-experience-title">Experience</h2>
+        <span className="meet-me-section-eyebrow">01 · Experience</span>
+        <h2 id="meet-me-experience-title">Where I’ve been.</h2>{" "}
       </header>
       <ol className="meet-me-timeline">
         {entries.map((entry) => (

@@ -36,47 +36,79 @@ export const meetMeContent: MeetMeContent = {
       organizationLabel: "Organization 01 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
-      responsibilityLabels: ["Responsibility pending approval"],
+      summaryLabel:
+        "Preview summary 01 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
+      responsibilityLabels: [
+        "Preview responsibility 01.01 — neutral placeholder for layout review.",
+        "Preview responsibility 01.02 — neutral placeholder for layout review.",
+        "Preview responsibility 01.03 — neutral placeholder for layout review.",
+        "Preview responsibility 01.04 — neutral placeholder for layout review.",
+        "Preview responsibility 01.05 — neutral placeholder for layout review.",
+        "Preview responsibility 01.06 — neutral placeholder for layout review.",
+      ],
     },
     {
       id: "experience-02",
       organizationLabel: "Organization 02 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
-      responsibilityLabels: ["Responsibility pending approval"],
+      summaryLabel:
+        "Preview summary 02 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
+      responsibilityLabels: [
+        "Preview responsibility 02.01 — neutral placeholder for layout review.",
+        "Preview responsibility 02.02 — neutral placeholder for layout review.",
+        "Preview responsibility 02.03 — neutral placeholder for layout review.",
+        "Preview responsibility 02.04 — neutral placeholder for layout review.",
+        "Preview responsibility 02.05 — neutral placeholder for layout review.",
+        "Preview responsibility 02.06 — neutral placeholder for layout review.",
+      ],
     },
     {
       id: "experience-03",
       organizationLabel: "Organization 03 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
-      responsibilityLabels: ["Responsibility pending approval"],
+      summaryLabel:
+        "Preview summary 03 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
+      responsibilityLabels: [
+        "Preview responsibility 03.01 — neutral placeholder for layout review.",
+        "Preview responsibility 03.02 — neutral placeholder for layout review.",
+      ],
     },
     {
       id: "experience-04",
       organizationLabel: "Organization 04 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
-      responsibilityLabels: ["Responsibility pending approval"],
+      summaryLabel:
+        "Preview summary 04 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
+      responsibilityLabels: [
+        "Preview responsibility 04.01 — neutral placeholder for layout review.",
+        "Preview responsibility 04.02 — neutral placeholder for layout review.",
+        "Preview responsibility 04.03 — neutral placeholder for layout review.",
+        "Preview responsibility 04.04 — neutral placeholder for layout review.",
+      ],
     },
     {
       id: "experience-05",
       organizationLabel: "Organization 05 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
-      responsibilityLabels: ["Responsibility pending approval"],
+      summaryLabel:
+        "Preview summary 05 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
+      responsibilityLabels: [
+        "Preview responsibility 05.01 — neutral placeholder for layout review.",
+        "Preview responsibility 05.02 — neutral placeholder for layout review.",
+        "Preview responsibility 05.03 — neutral placeholder for layout review.",
+      ],
     },
     {
       id: "experience-06",
-      organizationLabel: "Organization pending approval",
+      organizationLabel: "Organization 06 pending approval",
       roleLabel: "Role pending",
       metaLabel: "Dates pending approval",
-      summaryLabel: "Summary pending approval",
+      summaryLabel:
+        "Preview summary 06 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
     },
   ],
   education: [

@@ -37,9 +37,12 @@ const allowedPlaceholders = new Set([
 const placeholderCopy = (value) =>
   allowedPlaceholders.has(value) ||
   /^(?:experience-0[1-6]|certification-0[1-3])$/.test(value) ||
-  /^Organization 0[1-5] pending approval$/.test(value) ||
+  /^Organization 0[1-6] pending approval$/.test(value) ||
+  /^Preview summary 0[1-6] — neutral placeholder for editorial spacing and line wrapping; employment content is not approved\.$/.test(
+    value
+  ) ||
+  /^Preview responsibility 0[1-5]\.\d{2} — neutral placeholder for layout review\.$/.test(value) ||
   /^(?:Experience 0[1-6]|Education 0[1-3]|Certification 0[1-3]|Skill 0[1-7]|Language 0[1-2])$/.test(value);
-
 function collectStrings(value, strings = []) {
   if (typeof value === "string") {
     strings.push(value);
@@ -82,9 +85,10 @@ test("Meet Me content uses the approved neutral layout shape", () => {
     },
     {
       id: "experience-06",
-      organizationLabel: "Organization pending approval",
+      organizationLabel: "Organization 06 pending approval",
       roleLabel: "Role pending",
-      summaryLabel: "Summary pending approval",
+      summaryLabel:
+        "Preview summary 06 — neutral placeholder for editorial spacing and line wrapping; employment content is not approved.",
     }
   );
 
@@ -113,6 +117,35 @@ test("Meet Me content contains only neutral placeholders and no linked assets", 
     ),
     "content must not include contact, media, or logo links"
   );
+});
+
+test("Meet Me Experience source-shaped neutral density", () => {
+  const entries = meetMeContent.experiences;
+  assert.deepEqual(
+    entries.map(({ id }) => id),
+    ["experience-01", "experience-02", "experience-03", "experience-04", "experience-05", "experience-06"]
+  );
+  assert.deepEqual(
+    entries.map(({ responsibilityLabels }) => responsibilityLabels?.length ?? 0),
+    [6, 6, 2, 4, 3, 0]
+  );
+  const responsibilities = entries.flatMap(({ responsibilityLabels }) => responsibilityLabels ?? []);
+  assert.equal(responsibilities.length, 21);
+  assert.equal(new Set(responsibilities).size, 21);
+  assert.ok(
+    responsibilities.every((label) =>
+      /^Preview responsibility 0[1-5]\.\d{2} — neutral placeholder for layout review\.$/.test(label)
+    )
+  );
+  assert.ok(
+    entries.every(({ summaryLabel }) =>
+      /^Preview summary 0[1-6] — neutral placeholder for editorial spacing and line wrapping; employment content is not approved\.$/.test(
+        summaryLabel
+      )
+    )
+  );
+  assert.equal(entries[5].organizationLabel, "Organization 06 pending approval");
+  assert.equal(Object.hasOwn(entries[5], "responsibilityLabels"), false);
 });
 
 test("Meet Me hero rich intro contract", () => {
