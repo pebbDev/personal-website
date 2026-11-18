@@ -1,10 +1,12 @@
-import PagePlaceholder from "@/components/common/page-placeholder";
-import { previewData } from "./constants";
+import Hero from "./sections/hero";
+import { meetMeContent } from "./constants";
 
 export default function MeetMe() {
   return (
-    <div className="page-preview-frame">
-      <PagePlaceholder {...previewData} />
+    <div className="meet-me">
+      <div className="meet-me-container">
+        <Hero hero={meetMeContent.hero} />
+      </div>
     </div>
   );
 }

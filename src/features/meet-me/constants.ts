@@ -95,10 +95,3 @@ export const meetMeContent: MeetMeContent = {
   ],
   closingHeading: "More details pending approval",
 };
-
-// Temporary bridge for the existing preview composer.
-// Remove in Task 2 when the full Meet Me layout replaces PagePlaceholder.
-export const previewData = {
-  title: meetMeContent.hero.title,
-  description: meetMeContent.hero.introParagraphs.join(" "),
-};
