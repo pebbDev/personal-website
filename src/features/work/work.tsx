@@ -1,10 +1,16 @@
-import PagePlaceholder from "@/components/common/page-placeholder";
-import { previewData } from "./constants";
+import Footer from "@/components/layout/Footer";
+
+import Intro from "./sections/intro";
+import Closing from "./sections/closing";
 
 export default function Work() {
   return (
-    <div className="page-preview-frame">
-      <PagePlaceholder {...previewData} />
+    <div id="work" className="work-page">
+      <div className="work-container">
+        <Intro />
+        <Closing />
+      </div>
+      <Footer variant="compact" notice="Personal portfolio layout preview — content pending authorization." />
     </div>
   );
 }
