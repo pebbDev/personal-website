@@ -292,6 +292,62 @@ test("Meet Me experience disclosure", { timeout: 120000 }, async (t) => {
   await eventually(open, (isOpen) => !isOpen, "Space should close native details", 2000);
 });
 
+test("Meet Me TOC anchors preserve hash preview on click and Enter", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc ol a').length"),
+    (count) => count === 5,
+    "Meet Me must expose five keyboard-reachable anchors",
+    20000
+  );
+  await browser.resize(1440);
+  const links = await browser.evaluate(`[...document.querySelectorAll(".meet-me-toc ol a")].map(a => ({
+    href: a.getAttribute("href"), label: a.textContent.trim()
+  }))`);
+  assert.deepEqual(
+    links.map(({ href }) => href),
+    ["#experience", "#education", "#certifications", "#skills", "#languages"]
+  );
+  assert.deepEqual(
+    links.map(({ label }) => label),
+    ["Experience", "Education", "Certifications", "Skills & tools", "Languages"]
+  );
+  await browser.evaluate(`document.querySelector('.meet-me-toc a[href="#education"]').click()`);
+  await eventually(
+    () => browser.evaluate("window.scrollY"),
+    (scrollY) => scrollY > 100,
+    "TOC click should scroll within Meet Me without replacing preview",
+    5000
+  );
+  assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+  assert.equal(await browser.evaluate("document.querySelectorAll('.meet-me-content section').length"), 5);
+  await browser.send("Page.bringToFront");
+  await browser.evaluate(`document.querySelector('.meet-me-toc a[href="#certifications"]').focus()`);
+  assert.equal(await browser.evaluate("document.activeElement?.getAttribute('href')"), "#certifications");
+  const before = await browser.evaluate("scrollY");
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+    text: "\r",
+  });
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+  });
+  await eventually(
+    () => browser.evaluate("scrollY"),
+    (value) => value > before + 100,
+    "Enter should activate focused TOC anchor",
+    5000
+  );
+  assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+});
+
 test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
@@ -308,14 +364,13 @@ test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
     const article = root?.querySelector(".meet-me-content");
     const sections = Array.from(article?.querySelectorAll(":scope > section.meet-me-section") ?? []);
     const tocItems = Array.from(toc?.querySelectorAll("ol > li") ?? []);
-    const tocSpans = Array.from(toc?.querySelectorAll("ol > li > span") ?? []);
-    return {
+    const tocAnchors = Array.from(toc?.querySelectorAll("ol > li > a") ?? []);    return {
       heroCount: root?.querySelectorAll(".meet-me-hero").length ?? 0,
       sectionIds: sections.map((section) => section.id),
       articleCount: root?.querySelectorAll("article.meet-me-content").length ?? 0,
       tocItemCount: tocItems.length,
-      tocLabels: tocSpans.map((span) => span.textContent?.trim()),
-      tocControlCount: toc?.querySelectorAll(
+      tocLabels: tocAnchors.map((anchor) => anchor.textContent?.trim()),
+      tocHrefs: tocAnchors.map((anchor) => anchor.getAttribute("href")),      tocControlCount: toc?.querySelectorAll(
         "a, button, input, select, textarea, [role='link'], [role='button'], [tabindex], [onclick]",
       ).length ?? 0,
       detailRowCounts: ["education", "skills", "languages"].map(
@@ -337,8 +392,9 @@ test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
   assert.equal(new Set(structure.sectionIds).size, 5, "Reading section IDs should be unique");
   assert.equal(structure.articleCount, 1, "All reading sections should be in one article");
   assert.equal(structure.tocItemCount, 5, "On this page should contain five labels");
-  assert.deepEqual(structure.tocLabels, ["Experience", "Education", "Certifications", "Skills & Tools", "Languages"]);
-  assert.equal(structure.tocControlCount, 0, "TOC labels should remain inert, without link-like controls");
+  assert.deepEqual(structure.tocLabels, ["Experience", "Education", "Certifications", "Skills & tools", "Languages"]);
+  assert.deepEqual(structure.tocHrefs, ["#experience", "#education", "#certifications", "#skills", "#languages"]);
+  assert.equal(structure.tocControlCount, 5, "TOC should expose five accessible anchors");
   assert.deepEqual(
     structure.detailRowCounts,
     [3, 7, 2],

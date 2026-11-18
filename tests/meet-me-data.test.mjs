@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import * as meetMeConstants from "../src/features/meet-me/constants.ts";
 import { meetMeContent } from "../src/features/meet-me/constants.ts";
 
 const allowedPlaceholders = new Set([
@@ -146,6 +147,23 @@ test("Meet Me Experience source-shaped neutral density", () => {
   );
   assert.equal(entries[5].organizationLabel, "Organization 06 pending approval");
   assert.equal(Object.hasOwn(entries[5], "responsibilityLabels"), false);
+});
+
+test("Meet Me TOC source section descriptors", () => {
+  const items = meetMeConstants.meetMeTocItems;
+  assert.ok(Array.isArray(items), "TOC descriptors must exist");
+  assert.deepEqual(
+    items.map(({ id, label }) => [id, label]),
+    [
+      ["experience", "Experience"],
+      ["education", "Education"],
+      ["certifications", "Certifications"],
+      ["skills", "Skills & tools"],
+      ["languages", "Languages"],
+    ]
+  );
+  assert.equal(new Set(items.map(({ id }) => id)).size, 5);
+  assert.ok(items.every(({ id, label }) => !/[/:]/.test(id) && !/(?:https?:|mailto:|[/.]pdf)/i.test(label)));
 });
 
 test("Meet Me hero rich intro contract", () => {

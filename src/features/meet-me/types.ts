@@ -28,6 +28,13 @@ export type MeetMeExperience = Readonly<{
   responsibilityLabels?: readonly string[];
 }>;
 
+export type MeetMeSectionId = "experience" | "education" | "certifications" | "skills" | "languages";
+
+export type MeetMeTocItem = Readonly<{
+  id: MeetMeSectionId;
+  label: string;
+}>;
+
 export type MeetMeRow = Readonly<{ label: string; value: string }>;
 
 export type MeetMeCertification = Readonly<{

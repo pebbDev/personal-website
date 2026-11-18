@@ -1,3 +1,4 @@
+import MeetMeToc from "./components/MeetMeToc";
 import Hero from "./sections/hero";
 import Experience from "./sections/experience";
 import Education from "./sections/education";
@@ -6,7 +7,7 @@ import Skills from "./sections/skills";
 import Languages from "./sections/languages";
 import Closing from "./sections/closing";
 import Footer from "@/components/layout/Footer";
-import { meetMeContent } from "./constants";
+import { meetMeContent, meetMeTocItems } from "./constants";
 
 export default function MeetMe() {
   return (
@@ -14,26 +15,7 @@ export default function MeetMe() {
       <div className="meet-me-container">
         <Hero hero={meetMeContent.hero} />
         <div className="meet-me-case">
-          <aside className="meet-me-toc" aria-label="On this page">
-            <h2 className="meet-me-toc-heading">On this page</h2>
-            <ol>
-              <li>
-                <span>Experience</span>
-              </li>
-              <li>
-                <span>Education</span>
-              </li>
-              <li>
-                <span>Certifications</span>
-              </li>
-              <li>
-                <span>Skills &amp; Tools</span>
-              </li>
-              <li>
-                <span>Languages</span>
-              </li>
-            </ol>
-          </aside>
+          <MeetMeToc items={meetMeTocItems} />{" "}
           <article className="meet-me-content">
             <Experience entries={meetMeContent.experiences} />
             <Education rows={meetMeContent.education} />

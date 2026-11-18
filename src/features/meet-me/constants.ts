@@ -1,4 +1,11 @@
-import type { MeetMeContent } from "./types";
+import type { MeetMeContent, MeetMeTocItem } from "./types";
+export const meetMeTocItems: readonly MeetMeTocItem[] = [
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+  { id: "certifications", label: "Certifications" },
+  { id: "skills", label: "Skills & tools" },
+  { id: "languages", label: "Languages" },
+];
 
 export const meetMeContent: MeetMeContent = {
   hero: {
