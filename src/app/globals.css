@@ -2769,11 +2769,30 @@ a.home-journey-resume:focus-visible svg {
   border-left: 1px solid var(--border);
 }
 .meet-me-toc li {
+  font-size: 15px;
+}
+.meet-me-toc a {
+  display: block;
   margin-left: -1px;
   padding: 8px 0 8px 20px;
   border-left: 2px solid transparent;
   color: var(--muted);
-  font-size: 15px;
+  font: 400 15px/1.75 var(--font-body);
+  text-decoration: none;
+  transition:
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+.meet-me-toc a:hover,
+.meet-me-toc a[aria-current="location"] {
+  color: var(--foreground);
+}
+.meet-me-toc a[aria-current="location"] {
+  border-left-color: var(--foreground);
+}
+.meet-me-toc a:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
 }
 .meet-me-content {
   min-width: 0;
@@ -2783,6 +2802,14 @@ a.home-journey-resume:focus-visible svg {
   padding-top: 72px;
   opacity: 1;
 }
+/* Existing html scroll padding is 110px on desktop and 24px on mobile.
+   Adjust only Meet Me sections to match the source's 100px desktop offset. */
+@media (min-width: 901px) {
+  .meet-me-section {
+    scroll-margin-top: -10px;
+  }
+}
+
 .meet-me-section-header {
   margin-bottom: 20px;
 }

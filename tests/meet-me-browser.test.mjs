@@ -36,7 +36,8 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
       ),
       connectControls: root.querySelectorAll(".meet-me-connect a, .meet-me-connect button").length,
       portraitImages: root.querySelectorAll(".meet-me-portrait img").length,
-      mediaAndLinks: root.querySelectorAll(        "img, picture, video, audio, iframe, source, object, embed, a[href], [src], [href], [poster]",
+      mediaAndLinks: root.querySelector(".meet-me-hero").querySelectorAll(
+        "img, picture, video, audio, iframe, source, object, embed, a[href], [src], [href], [poster]"
       ).length,
       navCount: document.querySelectorAll("nav").length,
     };
@@ -348,6 +349,174 @@ test("Meet Me TOC anchors preserve hash preview on click and Enter", { timeout: 
   assert.equal(await browser.evaluate("location.hash"), "#meet-me");
 });
 
+test("Meet Me TOC scrollspy tracks 35 percent reading line", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a').length"),
+    (count) => count === 5,
+    "Expected five TOC anchors",
+    20000
+  );
+  await browser.resize(1440);
+  const active = () =>
+    browser.evaluate(`document.querySelector(".meet-me-toc a[aria-current='location']")?.getAttribute("href")`);
+  assert.equal(await active(), "#experience");
+  // Verify the source's 35% reading line on both sides of one section boundary.
+  for (const [delta, expectedHref] of [
+    [2, "#experience"],
+    [-2, "#education"],
+  ]) {
+    await browser.evaluate(
+      `(() => {
+        const section = document.getElementById("education");
+        const absoluteTop = window.scrollY + section.getBoundingClientRect().top;
+        const readingLine = window.innerHeight * 0.35;
+        window.scrollTo({ top: absoluteTop - readingLine - DELTA, behavior: "instant" });
+      })()`.replace("DELTA", String(delta))
+    );
+    await eventually(active, (href) => href === expectedHref, "Scrollspy threshold " + delta, 4500);
+  }
+  for (const id of ["education", "certifications", "skills", "languages"]) {
+    await browser.evaluate(
+      `document.getElementById("ID").scrollIntoView({block:"start",behavior:"instant"})`.replace("ID", id)
+    );
+    await eventually(active, (value) => value === "#" + id, "Scrollspy should highlight " + id, 4500);
+    assert.equal(await browser.evaluate("document.querySelectorAll('.meet-me-toc a[aria-current]').length"), 1);
+    assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+  }
+  await browser.evaluate(`window.scrollTo({top:0,behavior:"instant"})`);
+  await eventually(active, (value) => value === "#experience", "Scrollspy should restore Experience at top", 4500);
+});
+
+test("Meet Me TOC source hover, sticky and reduced-motion", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a').length"),
+    (count) => count === 5,
+    "Expected five TOC anchors",
+    20000
+  );
+  for (const width of [390, 640, 641, 768, 900, 901, 1100, 1101, 1440]) {
+    await browser.resize(width);
+    const m = await browser.evaluate(`(() => {
+      const toc = document.querySelector(".meet-me-toc");
+      const s = getComputedStyle(toc);
+      return {
+        display: s.display, position: s.position, top: s.top,
+        grid: getComputedStyle(document.querySelector(".meet-me-case")).gridTemplateColumns,
+        gap: getComputedStyle(document.querySelector(".meet-me-case")).columnGap,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    })()`);
+    assert.equal(m.display === "none", width <= 1100);
+    if (width > 1100) {
+      assert.equal(m.position, "sticky");
+      assert.equal(m.top, "110px");
+      assert.ok(m.grid.startsWith("200px "));
+      assert.equal(m.gap, "72px");
+    }
+    assert.ok(m.overflow <= 1, "TOC overflow at viewport " + width);
+  }
+  await browser.resize(1440);
+  await browser.evaluate(
+    `document.querySelector('.meet-me-toc a[href="#education"]').scrollIntoView({ block: "center", behavior: "instant" })`
+  );
+  const before = await browser.evaluate(`(() => {
+    const active = document.querySelector(".meet-me-toc a[aria-current='location']");
+    const s = getComputedStyle(active);
+    const rest = document.querySelector('.meet-me-toc a[href="#education"]');
+    const r = rest.getBoundingClientRect();
+    return {border:s.borderLeftWidth,borderColor:s.borderLeftColor,color:s.color,
+      padding:s.paddingLeft,transition:s.transitionDuration,
+      fontFamily:s.fontFamily,lineHeight:s.lineHeight,rowHeight:r.height,
+      defaultColor:getComputedStyle(rest).color,
+      x:r.x+r.width/2,y:r.y+r.height/2};  })()`);
+  assert.equal(before.border, "2px");
+  assert.equal(before.padding, "20px");
+  assert.equal(before.borderColor, "rgb(17, 17, 17)");
+  assert.ok(before.fontFamily.includes("Inter"), "Source TOC item uses the body font");
+  assert.equal(before.lineHeight, "26.25px");
+  assert.ok(Math.abs(before.rowHeight - 42.25) < 0.4, "TOC row matches source height");
+
+  await browser.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: before.x, y: before.y });
+  await eventually(
+    () => browser.evaluate(`getComputedStyle(document.querySelector('.meet-me-toc a[href="#education"]')).color`),
+    (value) => value === "rgb(17, 17, 17)",
+    "TOC hover must darken label",
+    3000
+  );
+  await browser.motion("reduce");
+  const reduced = await browser.evaluate(
+    `getComputedStyle(document.querySelector(".meet-me-toc a")).transitionDuration`
+  );
+  assert.ok(reduced.split(", ").every((part) => Number.parseFloat(part) <= 0.00001));
+  await browser.motion("no-preference");
+});
+
+test("Meet Me TOC respects source reading offset without global double-counting", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a').length"),
+    (count) => count === 5,
+    "Expected five TOC anchors",
+    20000
+  );
+  for (const [width, expectedTop] of [
+    [1440, 100],
+    [900, 24],
+  ]) {
+    await browser.resize(width);
+    await browser.evaluate(`document.getElementById("education").scrollIntoView({block:"start",behavior:"instant"})`);
+    await eventually(
+      () => browser.evaluate(`Math.round(document.getElementById("education").getBoundingClientRect().top)`),
+      (top) => Math.abs(top - expectedTop) <= 2,
+      "TOC target must stop at source offset " + expectedTop + "px for width " + width,
+      3000
+    );
+    assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+  }
+});
+
+test("Meet Me TOC remount restores active state and retains navigation", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a').length"),
+    (count) => count === 5,
+    "Expected Meet Me TOC",
+    20000
+  );
+  await browser.resize(1440);
+  const active = () =>
+    browser.evaluate("document.querySelector('.meet-me-toc a[aria-current=\"location\"]')?.getAttribute('href')");
+  await browser.evaluate("document.getElementById('skills').scrollIntoView({block:'start',behavior:'instant'})");
+  await eventually(active, (href) => href === "#skills", "Skills should be active before leaving Meet Me", 4000);
+
+  await browser.evaluate("location.hash = '#home'");
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me') === null"),
+    Boolean,
+    "Meet Me must unmount after switching to Home",
+    5000
+  );
+  await browser.evaluate("window.scrollTo({top:0,behavior:'instant'}); location.hash = '#meet-me'");
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a').length"),
+    (count) => count === 5,
+    "Meet Me TOC should remount",
+    5000
+  );
+  await eventually(active, (href) => href === "#experience", "Remount must recalculate active section", 4000);
+  assert.equal(await browser.evaluate("document.querySelectorAll('.meet-me-toc').length"), 1);
+
+  await browser.evaluate("document.getElementById('education').scrollIntoView({block:'start',behavior:'instant'})");
+  await eventually(active, (href) => href === "#education", "Remounted scrollspy must still work", 4000);
+  assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+});
+
 test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
@@ -364,13 +533,15 @@ test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
     const article = root?.querySelector(".meet-me-content");
     const sections = Array.from(article?.querySelectorAll(":scope > section.meet-me-section") ?? []);
     const tocItems = Array.from(toc?.querySelectorAll("ol > li") ?? []);
-    const tocAnchors = Array.from(toc?.querySelectorAll("ol > li > a") ?? []);    return {
+    const tocAnchors = Array.from(toc?.querySelectorAll("ol > li > a") ?? []);
+    return {
       heroCount: root?.querySelectorAll(".meet-me-hero").length ?? 0,
       sectionIds: sections.map((section) => section.id),
       articleCount: root?.querySelectorAll("article.meet-me-content").length ?? 0,
       tocItemCount: tocItems.length,
       tocLabels: tocAnchors.map((anchor) => anchor.textContent?.trim()),
-      tocHrefs: tocAnchors.map((anchor) => anchor.getAttribute("href")),      tocControlCount: toc?.querySelectorAll(
+      tocHrefs: tocAnchors.map((anchor) => anchor.getAttribute("href")),
+      tocControlCount: toc?.querySelectorAll(
         "a, button, input, select, textarea, [role='link'], [role='button'], [tabindex], [onclick]",
       ).length ?? 0,
       detailRowCounts: ["education", "skills", "languages"].map(
