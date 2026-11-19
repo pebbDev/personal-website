@@ -617,28 +617,199 @@ test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {
 
   const snapshot = await browser.evaluate(`(() => {
     const root = document.querySelector(".meet-me");
-    const buttons = [...root.querySelectorAll(".meet-me-closing button")];
+    const controls = [...root.querySelectorAll(".meet-me-closing-actions > a, .meet-me-closing-actions > button")];
     const footer = root.querySelector("footer.footer--compact");
     return {
       closing: root.querySelectorAll(".meet-me-closing").length,
-      actions: buttons.map((button) => ({ disabled: button.disabled, type: button.type, classes: button.className })),
-      unsafeAnchors: root.querySelectorAll(".meet-me-closing a, .meet-me-closing [href]").length,
+      controls: controls.map((element) => ({
+        tag: element.tagName,
+        text: element.textContent.trim(),
+        href: element.getAttribute("href"),
+        target: element.getAttribute("target"),
+        disabled: element instanceof HTMLButtonElement ? element.disabled : null,
+        type: element instanceof HTMLButtonElement ? element.type : null,
+        classes: element.className,
+      })),
+      externalAnchors: root.querySelectorAll('.meet-me-closing a[href^="http"], .meet-me-closing a[href^="mailto:"]').length,
       footerCount: root.querySelectorAll("footer").length,
       footerText: footer?.textContent?.trim(),
       footerBackground: footer ? getComputedStyle(footer).backgroundColor : null,
-      navCount: document.querySelectorAll("nav").length
+      navCount: document.querySelectorAll("nav").length,
     };
   })()`);
   assert.equal(snapshot.closing, 1);
-  assert.equal(snapshot.actions.length, 2, "Two visual CTAs expected");
-  assert.ok(snapshot.actions.every((action) => action.disabled && action.type === "button"));
-  assert.match(snapshot.actions[0].classes, /btn--line/);
-  assert.match(snapshot.actions[1].classes, /btn--dark/);
-  assert.equal(snapshot.unsafeAnchors, 0, "CTAs must not navigate");
+  assert.equal(snapshot.controls.length, 2, "Two Closing CTAs expected");
+  assert.deepEqual(
+    snapshot.controls.map(({ text }) => text),
+    ["See my work", "Say Hi 💬"]
+  );
+  assert.equal(snapshot.controls[0].tag, "A");
+  assert.equal(snapshot.controls[0].href, "#work");
+  assert.equal(snapshot.controls[0].target, null);
+  assert.match(snapshot.controls[0].classes, /btn--line/);
+  assert.match(snapshot.controls[0].classes, /btn--lg/);
+  assert.equal(snapshot.controls[1].tag, "BUTTON");
+  assert.equal(snapshot.controls[1].disabled, true);
+  assert.equal(snapshot.controls[1].type, "button");
+  assert.equal(snapshot.controls[1].href, null);
+  assert.match(snapshot.controls[1].classes, /btn--dark/);
+  assert.match(snapshot.controls[1].classes, /btn--lg/);
+  assert.equal(snapshot.externalAnchors, 0, "No third-party contact links");
   assert.equal(snapshot.footerCount, 1, "One compact footer expected");
   assert.equal(snapshot.footerText, "Personal website layout preview.");
   assert.equal(snapshot.footerBackground, "rgb(17, 17, 17)");
   assert.equal(snapshot.navCount, 1, "Shared Navbar should remain unique");
+});
+
+test("Meet Me Closing safe Work CTA click and Enter", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate(`Boolean(document.querySelector('.meet-me-closing a[href="#work"]'))`),
+    Boolean,
+    "Closing Work CTA missing",
+    15000
+  );
+  await browser.evaluate(`document.querySelector('.meet-me-closing a[href="#work"]').click()`);
+  await eventually(
+    () => browser.evaluate("location.hash"),
+    (value) => value === "#work",
+    "Work preview click navigation",
+    5000
+  );
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.page-preview-frame'))"),
+    Boolean,
+    "Work preview not mounted",
+    5000
+  );
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate(`Boolean(document.querySelector('.meet-me-closing a[href="#work"]'))`),
+    Boolean,
+    "Closing Work CTA did not remount",
+    15000
+  );
+  await browser.evaluate(`document.querySelector('.meet-me-closing a[href="#work"]').focus()`);
+  assert.equal(await browser.evaluate("document.activeElement?.getAttribute('href')"), "#work");
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Enter",
+    code: "Enter",
+    text: "\r",
+    windowsVirtualKeyCode: 13,
+  });
+  await browser.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+  });
+  await eventually(
+    () => browser.evaluate("location.hash"),
+    (value) => value === "#work",
+    "Work preview Enter navigation",
+    5000
+  );
+});
+
+test("Meet Me Closing geometry uses global Button at nine widths", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate(`Boolean(document.querySelector('.meet-me-closing a[href="#work"]'))`),
+    Boolean,
+    "Closing missing",
+    15000
+  );
+  for (const width of [390, 640, 641, 768, 900, 901, 1100, 1101, 1440]) {
+    await browser.resize(width);
+    const m = await browser.evaluate(`(() => {
+      const c = document.querySelector(".meet-me-closing");
+      const article = document.querySelector("article.meet-me-content");
+      const actions = c.querySelector(".meet-me-closing-actions");
+      const heading = c.querySelector("h2");
+      const buttons = [...actions.querySelectorAll(".btn")];
+      const s = getComputedStyle(c), h = getComputedStyle(heading), a = getComputedStyle(actions);
+      return {
+        closingWidth: c.getBoundingClientRect().width,
+        articleWidth: article.getBoundingClientRect().width,
+        display: s.display, flexWrap: s.flexWrap, justify: s.justifyContent, align: s.alignItems,
+        gap: s.gap, marginTop: s.marginTop, paddingTop: s.paddingTop, paddingBottom: s.paddingBottom,
+        borderTopWidth: s.borderTopWidth, headingSize: parseFloat(h.fontSize),
+        headingWeight: h.fontWeight, actionsGap: a.gap,
+        heights: buttons.map((button) => button.getBoundingClientRect().height),
+        fontSizes: buttons.map((button) => getComputedStyle(button).fontSize),
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    })()`);
+    assert.ok(Math.abs(m.closingWidth - m.articleWidth) <= 1, "Closing/article alignment at " + width);
+    if (width >= 1101) assert.ok(m.closingWidth <= 801, "Article cap at " + width);
+    assert.equal(m.display, "flex");
+    assert.equal(m.flexWrap, "wrap");
+    assert.equal(m.justify, "space-between");
+    assert.equal(m.align, "center");
+    assert.equal(m.gap, "24px");
+    assert.equal(m.marginTop, "96px");
+    assert.equal(m.paddingTop, "40px");
+    assert.equal(m.paddingBottom, "40px");
+    assert.equal(m.borderTopWidth, "1px");
+    assert.equal(m.headingWeight, "300");
+    assert.equal(m.actionsGap, "12px");
+    assert.ok(Math.abs(m.headingSize - Math.max(28, Math.min(36, width * 0.03))) < 1, "Heading size " + width);
+    assert.deepEqual(m.heights, [width <= 640 ? 48 : 52, width <= 640 ? 48 : 52]);
+    assert.deepEqual(m.fontSizes, [width <= 640 ? "15px" : "16px", width <= 640 ? "15px" : "16px"]);
+    assert.ok(m.overflow <= 1, "Horizontal overflow at " + width);
+  }
+});
+
+test("Meet Me Closing global Button hover and reduced motion", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing a[href=\"#work\"]'))"),
+    Boolean,
+    "Closing Work CTA missing",
+    15000
+  );
+  await browser.resize(1440);
+  const before = await browser.evaluate(`(() => {
+    const a = document.querySelector('.meet-me-closing a[href="#work"]');
+    a.scrollIntoView({block:"center",behavior:"instant"});
+    const r = a.getBoundingClientRect();
+    const s = getComputedStyle(a);
+    const disabled = document.querySelector(".meet-me-closing button:disabled");
+    return {x:r.x+r.width/2,y:r.y+r.height/2,border:s.borderTopColor,
+      disabledOpacity:getComputedStyle(disabled).opacity,disabledCursor:getComputedStyle(disabled).cursor};
+  })()`);
+  assert.equal(before.border, "rgb(214, 214, 214)");
+  assert.equal(before.disabledOpacity, "0.65");
+  assert.equal(before.disabledCursor, "not-allowed");
+  await browser.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: before.x, y: before.y });
+  await eventually(
+    () =>
+      browser.evaluate(`getComputedStyle(document.querySelector('.meet-me-closing a[href="#work"]')).borderTopColor`),
+    (color) => color === "rgb(17, 17, 17)",
+    "Line Button border should darken on hover",
+    3000
+  );
+  await eventually(
+    () =>
+      browser.evaluate(`(() => {
+      const t = getComputedStyle(document.querySelector('.meet-me-closing a[href="#work"]')).transform;
+      return t === "none" ? 0 : new DOMMatrixReadOnly(t).m42;
+    })()`),
+    (y) => Math.abs(y + 2) < 0.2,
+    "Line Button should lift 2px",
+    3000
+  );
+  await browser.motion("reduce");
+  const reduced = await browser.evaluate(`(() => {
+    const s = getComputedStyle(document.querySelector('.meet-me-closing a[href="#work"]'));
+    return {transition:s.transitionDuration,transform:s.transform};
+  })()`);
+  assert.ok(reduced.transition.split(", ").every((value) => parseFloat(value) <= 0.00001));
+  assert.equal(reduced.transform, "none");
 });
 
 test("Meet Me layout breakpoints", { timeout: 180000 }, async (t) => {
