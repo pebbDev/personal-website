@@ -156,5 +156,5 @@ export const meetMeContent: MeetMeContent = {
     { label: "Language 01", value: "Details pending approval" },
     { label: "Language 02", value: "Details pending approval" },
   ],
-  closingHeading: "More details pending approval",
+  closingHeading: "Let’s build the next chapter.",
 };

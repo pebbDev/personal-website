@@ -22,9 +22,9 @@ export default function MeetMe() {
             <Certifications entries={meetMeContent.certifications} />
             <Skills rows={meetMeContent.skills} />
             <Languages rows={meetMeContent.languages} />
+            <Closing heading={meetMeContent.closingHeading} />
           </article>
         </div>
-        <Closing heading={meetMeContent.closingHeading} />
       </div>
       <Footer variant="compact" notice="Personal website layout preview." />
     </div>

@@ -322,7 +322,7 @@ test("Meet Me TOC anchors preserve hash preview on click and Enter", { timeout: 
     5000
   );
   assert.equal(await browser.evaluate("location.hash"), "#meet-me");
-  assert.equal(await browser.evaluate("document.querySelectorAll('.meet-me-content section').length"), 5);
+  assert.equal(await browser.evaluate("document.querySelectorAll('.meet-me-content section').length"), 6); // Five TOC sections plus Closing
   await browser.send("Page.bringToFront");
   await browser.evaluate(`document.querySelector('.meet-me-toc a[href="#certifications"]').focus()`);
   assert.equal(await browser.evaluate("document.activeElement?.getAttribute('href')"), "#certifications");
@@ -573,6 +573,37 @@ test("Meet Me complete reading structure", { timeout: 120000 }, async (t) => {
   );
   assert.equal(structure.certificationCount, 3, "Certifications should contain three ordered steps");
   assert.equal(structure.hash, "#meet-me", "Inspecting the inert TOC should preserve the preview hash");
+});
+
+test("Meet Me Closing follows Languages inside article", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-hero'))"),
+    Boolean,
+    "Meet Me absent"
+  );
+
+  const structure = await browser.evaluate(`(() => {
+    const root = document.querySelector(".meet-me");
+    const article = root?.querySelector("article.meet-me-content");
+    const languages = article?.querySelector("#languages");
+    return {
+      closingCount: root?.querySelectorAll("section.meet-me-closing").length ?? 0,
+      articleLastChildIsClosing: article?.lastElementChild?.matches("section.meet-me-closing") ?? false,
+      languagesImmediatelyBeforeClosing: languages?.nextElementSibling?.matches("section.meet-me-closing") ?? false,
+      tocLinkCount: root?.querySelectorAll(".meet-me-toc ol > li > a").length ?? 0,
+      compactFooterCount: root?.querySelectorAll("footer.footer--compact").length ?? 0,
+    };
+  })()`);
+
+  assert.deepEqual(structure, {
+    closingCount: 1,
+    articleLastChildIsClosing: true,
+    languagesImmediatelyBeforeClosing: true,
+    tocLinkCount: 5,
+    compactFooterCount: 1,
+  });
 });
 
 test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {

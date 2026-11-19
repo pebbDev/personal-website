@@ -33,6 +33,7 @@ const allowedPlaceholders = new Set([
   "Details pending approval",
   "Description pending approval",
   "More details pending approval",
+  "Let’s build the next chapter.",
 ]);
 
 const placeholderCopy = (value) =>
@@ -44,6 +45,11 @@ const placeholderCopy = (value) =>
   ) ||
   /^Preview responsibility 0[1-5]\.\d{2} — neutral placeholder for layout review\.$/.test(value) ||
   /^(?:Experience 0[1-6]|Education 0[1-3]|Certification 0[1-3]|Skill 0[1-7]|Language 0[1-2])$/.test(value);
+
+test("Meet Me Closing approved neutral heading", () => {
+  assert.equal(meetMeContent.closingHeading, "Let’s build the next chapter.");
+});
+
 function collectStrings(value, strings = []) {
   if (typeof value === "string") {
     strings.push(value);
