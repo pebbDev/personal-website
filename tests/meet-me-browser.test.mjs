@@ -40,7 +40,8 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
         "img, picture, video, audio, iframe, source, object, embed, a[href], [src], [href], [poster]"
       ).length,
       navCount: document.querySelectorAll("nav").length,
-    };
+      globalNavbarCount: document.querySelectorAll(".topnav nav.pill[aria-label='Main navigation']").length,
+      tocNavCount: root.querySelectorAll(".meet-me-toc > nav.on-this-page[aria-label='On this page']").length,    };
   })()`);
 
   assert.ok(hero, "Meet Me feature should render");
@@ -72,7 +73,9 @@ test("Meet Me hero baseline", { timeout: 120000 }, async (t) => {
   assert.equal(hero.connectControls, 0, "Uncleared contact slots must not be interactive");
   assert.equal(hero.portraitImages, 0, "Portrait must not load real media");
   assert.equal(hero.mediaAndLinks, 0, "Meet Me hero must not contain media or links");
-  assert.equal(hero.navCount, 1, "Meet Me must not render a second Navbar");
+  assert.equal(hero.navCount, 2, "Meet Me has exactly one global Navbar and one shared TOC nav");
+  assert.equal(hero.globalNavbarCount, 1, "Global Navbar must remain unique");
+  assert.equal(hero.tocNavCount, 1, "Shared OnThisPage nav must remain unique");
 });
 
 test("Meet Me contact semantics and Lucide icons", { timeout: 120000 }, async (t) => {
@@ -314,6 +317,34 @@ test("Meet Me TOC anchors preserve hash preview on click and Enter", { timeout: 
     links.map(({ label }) => label),
     ["Experience", "Education", "Certifications", "Skills & tools", "Languages"]
   );
+  await eventually(
+    () => browser.evaluate("document.querySelectorAll('.meet-me-toc a[aria-current=\"location\"]').length"),
+    (count) => count === 1,
+    "One current TOC item must be announced",
+    4000
+  );
+  const sharedNav = await browser.evaluate(`(() => {
+    const aside = document.querySelector(".meet-me-toc");
+    const nav = aside?.querySelector(":scope > nav.on-this-page");
+    return {
+      asideLabel: aside?.getAttribute("aria-label"),
+      namedNavCount: document.querySelectorAll('.meet-me nav[aria-label="On this page"]').length,
+      headingTag: nav?.querySelector(":scope > h2")?.tagName ?? null,
+      heading: nav?.querySelector(":scope > h2")?.textContent?.trim() ?? null,
+      linkCount: nav?.querySelectorAll("ol > li > a").length ?? 0,
+      activeCount: nav?.querySelectorAll('a[aria-current="location"]').length ?? 0,
+      markerCount: nav?.querySelectorAll(".case-detail-toc-marker, [data-layout-id]").length ?? 0,
+    };
+  })()`);
+  assert.deepEqual(sharedNav, {
+    asideLabel: null,
+    namedNavCount: 1,
+    headingTag: "H2",
+    heading: "On this page",
+    linkCount: 5,
+    activeCount: 1,
+    markerCount: 0,
+  });
   await browser.evaluate(`document.querySelector('.meet-me-toc a[href="#education"]').click()`);
   await eventually(
     () => browser.evaluate("window.scrollY"),
@@ -635,7 +666,8 @@ test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {
       footerText: footer?.textContent?.trim(),
       footerBackground: footer ? getComputedStyle(footer).backgroundColor : null,
       navCount: document.querySelectorAll("nav").length,
-    };
+      globalNavbarCount: document.querySelectorAll(".topnav nav.pill[aria-label='Main navigation']").length,
+      tocNavCount: root.querySelectorAll(".meet-me-toc > nav.on-this-page[aria-label='On this page']").length,    };
   })()`);
   assert.equal(snapshot.closing, 1);
   assert.equal(snapshot.controls.length, 2, "Two Closing CTAs expected");
@@ -658,7 +690,9 @@ test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {
   assert.equal(snapshot.footerCount, 1, "One compact footer expected");
   assert.equal(snapshot.footerText, "Personal website layout preview.");
   assert.equal(snapshot.footerBackground, "rgb(17, 17, 17)");
-  assert.equal(snapshot.navCount, 1, "Shared Navbar should remain unique");
+  assert.equal(snapshot.navCount, 2, "One global Navbar plus one shared OnThisPage navigation");
+  assert.equal(snapshot.globalNavbarCount, 1, "Shared Navbar should remain unique");
+  assert.equal(snapshot.tocNavCount, 1, "Meet Me shared TOC should remain unique");
 });
 
 test("Meet Me Closing safe Work CTA click and Enter", { timeout: 120000 }, async (t) => {

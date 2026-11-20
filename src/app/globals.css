@@ -2755,23 +2755,23 @@ a.home-journey-resume:focus-visible svg {
   align-self: start;
   padding-top: 72px;
 }
-.meet-me-toc-heading {
+.on-this-page-heading {
   margin: 0 0 20px;
   color: var(--muted);
   font: 400 12px/1 var(--font-sub);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.meet-me-toc ol {
+.on-this-page ol {
   margin: 0;
   padding: 0;
   list-style: none;
   border-left: 1px solid var(--border);
 }
-.meet-me-toc li {
+.on-this-page li {
   font-size: 15px;
 }
-.meet-me-toc a {
+.on-this-page a {
   display: block;
   margin-left: -1px;
   padding: 8px 0 8px 20px;
@@ -2783,14 +2783,14 @@ a.home-journey-resume:focus-visible svg {
     color 0.2s var(--ease),
     border-color 0.2s var(--ease);
 }
-.meet-me-toc a:hover,
-.meet-me-toc a[aria-current="location"] {
+.on-this-page a:hover,
+.on-this-page a[aria-current="location"] {
   color: var(--foreground);
 }
-.meet-me-toc a[aria-current="location"] {
+.on-this-page a[aria-current="location"] {
   border-left-color: var(--foreground);
 }
-.meet-me-toc a:focus-visible {
+.on-this-page a:focus-visible {
   outline: 2px solid var(--foreground);
   outline-offset: 3px;
 }
