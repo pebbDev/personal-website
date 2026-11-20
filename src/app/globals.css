@@ -3048,6 +3048,32 @@ a.home-journey-resume:focus-visible svg {
   opacity: 0.65;
   cursor: not-allowed;
 }
+/* Keep Closing visible by default, including SSR/no-JS and missing observers. */
+.meet-me-closing[data-reveal] {
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease);
+}
+.meet-me-closing[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.meet-me-closing[data-reveal="visible"] {
+  opacity: 1;
+  transform: none;
+}
+.meet-me-closing[data-reveal="instant"] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .meet-me-closing[data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 .meet-me .footer--compact .footer__container {
   width: 100%;
   max-width: 1160px;

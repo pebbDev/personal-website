@@ -812,6 +812,129 @@ test("Meet Me Closing global Button hover and reduced motion", { timeout: 120000
   assert.equal(reduced.transform, "none");
 });
 
+test("Meet Me Closing reveals once on viewport entry", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.resize(1440);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing'))"),
+    Boolean,
+    "Closing missing",
+    15000
+  );
+  const status = () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal");
+  await eventually(status, (value) => value === "pending", "Offscreen Closing must arm reveal", 5000);
+  await browser.evaluate(
+    `document.querySelector('.meet-me-closing').scrollIntoView({block:"center",behavior:"instant"})`
+  );
+  await eventually(status, (value) => value === "visible", "Closing must reveal on entry", 5000);
+  await eventually(
+    () =>
+      browser.evaluate(`(() => {
+      const s=getComputedStyle(document.querySelector(".meet-me-closing"));
+      return {opacity:Number(s.opacity), transform:s.transform};
+    })()`),
+    (value) => value.opacity > 0.99 && value.transform === "none",
+    "Closing must finish visible and untransformed",
+    3000
+  );
+  await browser.evaluate(`window.scrollTo({top:0,behavior:"instant"})`);
+  assert.equal(await status(), "visible", "Reveal should remain visible after leaving the viewport");
+  assert.equal(await browser.evaluate("location.hash"), "#meet-me");
+});
+
+test("Meet Me Closing reveal respects reduced motion", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.motion("reduce");
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing'))"),
+    Boolean,
+    "Closing missing",
+    15000
+  );
+  const reduced = await browser.evaluate(`(() => {
+    const el=document.querySelector(".meet-me-closing"),s=getComputedStyle(el);
+    return {state:el.dataset.reveal??null,opacity:s.opacity,transform:s.transform};
+  })()`);
+  assert.notEqual(reduced.state, "pending");
+  assert.equal(reduced.opacity, "1");
+  assert.equal(reduced.transform, "none");
+});
+
+test("Meet Me Closing keyboard focus reveals pending CTA", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (value) => value === "pending",
+    "Closing should initially be pending offscreen",
+    15000
+  );
+  await browser.send("Page.bringToFront");
+  await eventually(() => browser.evaluate("document.hasFocus()"), Boolean, "Chrome tab not focused", 4000);
+  assert.equal(await browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"), "pending");
+  await browser.evaluate("document.querySelector('.meet-me-closing a[href=\"#work\"]').focus({preventScroll:true})");
+  assert.equal(await browser.evaluate("document.activeElement?.getAttribute('href')"), "#work");
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (value) => value === "instant",
+    "Keyboard focus should bypass reveal animation",
+    4000
+  );
+  const focusedStyle = await browser.evaluate(
+    "(() => { const s=getComputedStyle(document.querySelector('.meet-me-closing')); return {opacity:s.opacity,transform:s.transform}; })()"
+  );
+  assert.deepEqual(focusedStyle, { opacity: "1", transform: "none" });
+});
+
+test("Meet Me Closing stays visible when its observer fails", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.addScriptToEvaluateOnNewDocument", {
+    source:
+      "(() => {\n  const NativeObserver = window.IntersectionObserver;\n  window.IntersectionObserver = class ClosingFallbackObserver {\n    constructor(callback, options) {\n      if (options?.threshold === 0.06 && options?.rootMargin === '0px 0px -40px 0px') {\n        throw new Error('Closing observer intentionally unavailable');\n      }\n      return new NativeObserver(callback, options);\n    }\n  };\n})();",
+  });
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing'))"),
+    Boolean,
+    "Closing fallback missing",
+    15000
+  );
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (value) => value === "visible",
+    "Closing must be visible when observer construction fails",
+    4000
+  );
+  const fallback = await browser.evaluate(
+    "(() => { const s=getComputedStyle(document.querySelector('.meet-me-closing')); return {opacity:s.opacity,transform:s.transform}; })()"
+  );
+  assert.deepEqual(fallback, { opacity: "1", transform: "none" });
+});
+
+test("Meet Me Closing reveals when reduced motion toggles on", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (value) => value === "pending",
+    "Closing must initially be offscreen",
+    15000
+  );
+  await browser.motion("reduce");
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (value) => value === "instant",
+    "Closing must appear instantly when reduced motion is enabled",
+    4000
+  );
+  const reduced = await browser.evaluate(
+    "(() => { const s=getComputedStyle(document.querySelector('.meet-me-closing')); return {opacity:s.opacity,transform:s.transform}; })()"
+  );
+  assert.deepEqual(reduced, { opacity: "1", transform: "none" });
+});
+
 test("Meet Me layout breakpoints", { timeout: 180000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });
