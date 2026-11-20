@@ -886,6 +886,10 @@ test("Meet Me Closing keyboard focus reveals pending CTA", { timeout: 120000 }, 
     "(() => { const s=getComputedStyle(document.querySelector('.meet-me-closing')); return {opacity:s.opacity,transform:s.transform}; })()"
   );
   assert.deepEqual(focusedStyle, { opacity: "1", transform: "none" });
+  const indicator = await browser.evaluate(
+    "(() => {const a=document.querySelector('.meet-me-closing a[href=\"#work\"]'); const s=getComputedStyle(a); return {visible:a.matches(':focus-visible'),width:s.outlineWidth,offset:s.outlineOffset};})()"
+  );
+  assert.deepEqual(indicator, { visible: true, width: "2px", offset: "3px" });
 });
 
 test("Meet Me Closing stays visible when its observer fails", { timeout: 120000 }, async (t) => {
@@ -913,6 +917,30 @@ test("Meet Me Closing stays visible when its observer fails", { timeout: 120000 
   assert.deepEqual(fallback, { opacity: "1", transform: "none" });
 });
 
+test("Meet Me Closing stays visible if motion-listener registration fails", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.addScriptToEvaluateOnNewDocument", {
+    source:
+      "(() => {\n  const original = window.matchMedia.bind(window);\n  window.matchMedia = (query) => {\n    const mql = original(query);\n    if (query !== '(prefers-reduced-motion: reduce)') return mql;\n    return new Proxy(mql, {\n      get(target, property) {\n        if (property === 'addEventListener') return (...args) => { if (document.querySelector('.meet-me-closing')) throw new Error('Media-query listener unavailable'); return target.addEventListener(...args); };\n        const value = target[property];\n        return typeof value === 'function' ? value.bind(target) : value;\n      }\n    });\n  };\n})();",
+  });
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing'))"),
+    Boolean,
+    "Closing must remain mounted if motion listener setup fails",
+    15000
+  );
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (state) => state === "visible" || state === "instant",
+    "Closing cannot remain pending after motion listener failure",
+    4000
+  );
+  const visible = await browser.evaluate(
+    "(() => {const s=getComputedStyle(document.querySelector('.meet-me-closing')); return {opacity:s.opacity,transform:s.transform};})()"
+  );
+  assert.deepEqual(visible, { opacity: "1", transform: "none" });
+});
 test("Meet Me Closing reveals when reduced motion toggles on", { timeout: 120000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
@@ -935,6 +963,47 @@ test("Meet Me Closing reveals when reduced motion toggles on", { timeout: 120000
   assert.deepEqual(reduced, { opacity: "1", transform: "none" });
 });
 
+test("Meet Me Closing default CSS remains visible without a reveal marker", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.meet-me-closing'))"),
+    Boolean,
+    "Closing missing",
+    15000
+  );
+  const state = await browser.evaluate(
+    "(() => {const e=document.querySelector('.meet-me-closing'); e.removeAttribute('data-reveal'); const s=getComputedStyle(e); return {opacity:s.opacity,transform:s.transform};})()"
+  );
+  assert.deepEqual(state, { opacity: "1", transform: "none" });
+});
+
+test("Meet Me Closing disconnects observer when Work preview unmounts it", { timeout: 120000 }, async (t) => {
+  const browser = await openBrowser(t);
+  await browser.send("Page.addScriptToEvaluateOnNewDocument", {
+    source:
+      "(() => {\n  const NativeObserver = window.IntersectionObserver;\n  const stats = { created: 0, disconnected: 0 };\n  window.__closingObserverStats = stats;\n  window.IntersectionObserver = class TrackedClosingObserver {\n    constructor(callback, options) {\n      if (options?.threshold !== 0.06 || options?.rootMargin !== '0px 0px -40px 0px') {\n        return new NativeObserver(callback, options);\n      }\n      this.native = new NativeObserver(callback, options);\n      stats.created++;\n    }\n    observe(element) { return this.native.observe(element); }\n    unobserve(element) { return this.native.unobserve(element); }\n    disconnect() { stats.disconnected++; return this.native.disconnect(); }\n    takeRecords() { return this.native.takeRecords(); }\n  };\n})();",
+  });
+  await browser.send("Page.navigate", { url: browser.url + "/#meet-me" });
+  await eventually(
+    () => browser.evaluate("document.querySelector('.meet-me-closing')?.dataset.reveal"),
+    (state) => state === "pending",
+    "Offscreen Closing did not arm observer",
+    15000
+  );
+  const before = await browser.evaluate("({...window.__closingObserverStats})");
+  assert.ok(before.created >= 1, "Expected tracked Closing observer");
+  await browser.evaluate("location.hash = '#work'");
+  await eventually(
+    () => browser.evaluate("Boolean(document.querySelector('.page-preview-frame'))"),
+    Boolean,
+    "Work preview did not mount",
+    5000
+  );
+  assert.equal(await browser.evaluate("document.querySelector('.meet-me-closing')"), null);
+  const after = await browser.evaluate("({...window.__closingObserverStats})");
+  assert.ok(after.disconnected >= after.created, "All created Closing observers must disconnect");
+});
 test("Meet Me layout breakpoints", { timeout: 180000 }, async (t) => {
   const browser = await openBrowser(t);
   await browser.send("Page.navigate", { url: `${browser.url}/#meet-me` });

@@ -35,13 +35,15 @@ export default function Closing({ heading }: Readonly<{ heading: string }>) {
       return;
     }
 
-    section.dataset.reveal = "pending";
     const onMotionChange = () => {
       if (motion.matches) revealInstantly();
     };
-    motion.addEventListener("change", onMotionChange);
+    let listenerAttached = false;
 
+    // Complete setup before hiding content so unsupported event APIs fail visibly.
     try {
+      motion.addEventListener("change", onMotionChange);
+      listenerAttached = true;
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry?.isIntersecting) reveal();
@@ -50,14 +52,20 @@ export default function Closing({ heading }: Readonly<{ heading: string }>) {
       );
       observerRef.current = observer;
       observer.observe(section);
+      if (motion.matches) revealInstantly();
+      else section.dataset.reveal = "pending";
     } catch {
       reveal();
+      if (listenerAttached) {
+        motion.removeEventListener?.("change", onMotionChange);
+        listenerAttached = false;
+      }
     }
 
     return () => {
       observerRef.current?.disconnect();
       observerRef.current = null;
-      motion.removeEventListener("change", onMotionChange);
+      if (listenerAttached) motion.removeEventListener?.("change", onMotionChange);
     };
   }, [reveal, revealInstantly]);
 
