@@ -648,8 +648,7 @@ test("Meet Me closing safety and footer", { timeout: 120000 }, async (t) => {
 
   const snapshot = await browser.evaluate(`(() => {
     const root = document.querySelector(".meet-me");
-    const controls = [...root.querySelectorAll(".meet-me-closing-actions > a, .meet-me-closing-actions > button")];
-    const footer = root.querySelector("footer.footer--compact");
+    const controls = [...root.querySelectorAll(".closing-section-actions > a, .closing-section-actions > button")];    const footer = root.querySelector("footer.footer--compact");
     return {
       closing: root.querySelectorAll(".meet-me-closing").length,
       controls: controls.map((element) => ({
@@ -761,8 +760,7 @@ test("Meet Me Closing geometry uses global Button at nine widths", { timeout: 12
     const m = await browser.evaluate(`(() => {
       const c = document.querySelector(".meet-me-closing");
       const article = document.querySelector("article.meet-me-content");
-      const actions = c.querySelector(".meet-me-closing-actions");
-      const heading = c.querySelector("h2");
+      const actions = c.querySelector(".closing-section-actions");      const heading = c.querySelector("h2");
       const buttons = [...actions.querySelectorAll(".btn")];
       const s = getComputedStyle(c), h = getComputedStyle(heading), a = getComputedStyle(actions);
       return {

@@ -3025,7 +3025,7 @@ a.home-journey-resume:focus-visible svg {
 .meet-me-step:hover .meet-me-step-title {
   transform: translateX(3px);
 }
-.meet-me-closing {
+.closing-section {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3035,40 +3035,40 @@ a.home-journey-resume:focus-visible svg {
   padding: 40px 0;
   border-top: 1px solid var(--border);
 }
-.meet-me-closing h2 {
+.closing-section h2 {
   margin: 0;
   font: 300 clamp(28px, 3vw, 36px) / 1.15 var(--font-display);
 }
-.meet-me-closing-actions {
+.closing-section-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
-.meet-me-closing .btn:disabled {
+.closing-section .btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
 /* Keep Closing visible by default, including SSR/no-JS and missing observers. */
-.meet-me-closing[data-reveal] {
+.closing-section[data-reveal] {
   transition:
     opacity 0.7s var(--ease),
     transform 0.7s var(--ease);
 }
-.meet-me-closing[data-reveal="pending"] {
+.closing-section[data-reveal="pending"] {
   opacity: 0;
   transform: translateY(16px);
 }
-.meet-me-closing[data-reveal="visible"] {
+.closing-section[data-reveal="visible"] {
   opacity: 1;
   transform: none;
 }
-.meet-me-closing[data-reveal="instant"] {
+.closing-section[data-reveal="instant"] {
   opacity: 1;
   transform: none;
   transition: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .meet-me-closing[data-reveal] {
+  .closing-section[data-reveal] {
     opacity: 1;
     transform: none;
     transition: none;
