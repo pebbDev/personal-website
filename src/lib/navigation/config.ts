@@ -13,13 +13,17 @@ export const canonicalRoutes = {
   meetMePreview: "/#meet-me",
 } as const;
 
+// Development-only CaseDetail destination; not a published case-study route.
+export const localPreviewRoutes = {
+  caseStudy01: `${canonicalRoutes.work}?preview=case-study-01`,
+} as const;
+
 export function getNavbarHref(id: PreviewTab, pathname: string): string {
-  if (pathname !== canonicalRoutes.work) return previewRoutes[id];
+  if (pathname === canonicalRoutes.home) return previewRoutes[id];
   if (id === "home") return "/#home";
   if (id === "meet-me") return canonicalRoutes.meetMePreview;
   return canonicalRoutes.work;
 }
-
 // Section destinations are distinct from the three preview tabs.
 export const sectionRoutes = {
   contact: "#contact",

@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
-import { ArrowRight } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { NavLink } from "@/lib/navigation";
+import Placeholder from "@/components/ui/Placeholder";
 import type { GalleryCategory, GalleryCategoryId } from "../../types";
 
 type GalleryCabinetProps = Readonly<{ categories: readonly GalleryCategory[] }>;
@@ -103,22 +104,22 @@ export default function GalleryCabinet({ categories }: GalleryCabinetProps) {
                   href={category.href}
                   aria-label={`See folder: ${category.title}`}
                 >
-                  <span className="home-gallery-collage-grid" aria-hidden="true">
-                    {category.media.map((slot) => (
-                      <span key={slot.position} className={`home-gallery-media home-gallery-media--${slot.position}`} />
-                    ))}
-                  </span>
+                  <Placeholder
+                    decorative
+                    className="home-gallery-collage-grid"
+                    positions={category.media.map((slot) => slot.position)}
+                  />{" "}
                   <span className="home-gallery-overlay" aria-hidden="true">
-                    See Folder <ArrowRight size={20} strokeWidth={1.8} />
+                    See Folder <FolderOpen size={20} strokeWidth={1.8} />{" "}
                   </span>
                 </NavLink>
               ) : (
                 <div className="home-gallery-collage" aria-label={category.title}>
-                  <span className="home-gallery-collage-grid" aria-hidden="true">
-                    {category.media.map((slot) => (
-                      <span key={slot.position} className={`home-gallery-media home-gallery-media--${slot.position}`} />
-                    ))}
-                  </span>
+                  <Placeholder
+                    decorative
+                    className="home-gallery-collage-grid"
+                    positions={category.media.map((slot) => slot.position)}
+                  />{" "}
                 </div>
               )}
             </div>

@@ -18,9 +18,10 @@ test("Work Catalog filters follow counts, URL state and preview safety", { timeo
         chips: chips.map(button => ({
           id: button.dataset.filter, label: button.textContent.replace(/\\s+/g, " ").trim(),
           disabled: button.disabled, pressed: button.getAttribute("aria-pressed"),
+          sharedVariant: button.classList.contains("btn--chip"),
+          nativeButton: button.tagName === "BUTTON" && button.type === "button",
         })),
-        visibleCategoryIds: shown.map(section => section.dataset.category),
-        visibleCards: shown.reduce((total, section) => total + section.querySelectorAll(".work-project-card").length, 0),
+        visibleCategoryIds: shown.map(section => section.dataset.category),        visibleCards: shown.reduce((total, section) => total + section.querySelectorAll(".work-project-card").length, 0),
         totalCards: root?.querySelectorAll(".work-project-card").length ?? 0,
         unsafeCards: root?.querySelectorAll(".work-project-card a, .work-project-card button, .work-project-card[tabindex]").length ?? 0,
         unsafeMedia: root?.querySelectorAll("img, video, picture, iframe").length ?? 0,
@@ -36,13 +37,17 @@ test("Work Catalog filters follow counts, URL state and preview safety", { timeo
   };
   const selected = (state, id, expectedCount) => {
     assert.equal(state.chips.length, 6);
+    assert.ok(
+      state.chips.every((chip) => chip.sharedVariant && chip.nativeButton),
+      "filter chips must use the shared Button chip variant as native buttons"
+    );
     assert.deepEqual(
       state.chips.filter((chip) => chip.pressed === "true").map((chip) => chip.id),
       [id]
     );
     assert.equal(state.visibleCards, expectedCount);
     assert.equal(state.totalCards, 30);
-    assert.equal(state.unsafeCards, 0);
+    assert.equal(state.unsafeCards, 0, "all case cards are unavailable until detail routing is approved");
     assert.equal(state.unsafeMedia, 0);
     assert.ok(
       state.chips.every((chip) => !chip.disabled),

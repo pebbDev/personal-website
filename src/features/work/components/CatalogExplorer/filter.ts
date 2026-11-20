@@ -1,4 +1,4 @@
-import type { WorkCategory, WorkFilterId } from "../types";
+import type { WorkCategory, WorkFilterId } from "../../types";
 
 export function parseWorkFilter(hash: string): WorkFilterId {
   switch (hash) {

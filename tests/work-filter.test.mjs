@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { workCategories } from "../src/features/work/constants.ts";
-import { parseWorkFilter, selectWorkCategories } from "../src/features/work/catalog/filter.ts";
+import { parseWorkFilter, selectWorkCategories } from "../src/features/work/components/CatalogExplorer/filter.ts";
 
 test("Work hashes resolve exactly to five categories or All", () => {
   const accepted = ["uiux", "branding", "social", "event", "ecommerce"];

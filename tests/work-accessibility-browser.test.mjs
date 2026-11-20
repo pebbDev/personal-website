@@ -44,18 +44,18 @@ test(
     assert.ok(focus.offset >= 2, "filter focus ring should not touch chip border");
 
     const card = await evaluate(`(() => {
-    const card = document.querySelector(".work-project-card");
+    const card = document.querySelector('.work-project-card[data-project-id="movastocks"]');
     const rect = card.getBoundingClientRect();
     return { x: rect.left + 15, y: rect.top + 15 };
   })()`);
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: card.x, y: card.y });
     const inert = await evaluate(`(() => {
-    const card = document.querySelector(".work-project-card");
+    const card = document.querySelector('.work-project-card[data-project-id="movastocks"]');
     return { cursor: getComputedStyle(card).cursor,
       zoom: getComputedStyle(card.querySelector(".work-project-cover")).transform,
       anchors: document.querySelectorAll(".work-project-card a").length };
   })()`);
-    assert.equal(inert.anchors, 0);
+    assert.equal(inert.anchors, 0, "all cards remain inert while details are not routed");
     assert.notEqual(inert.cursor, "pointer");
     assert.equal(inert.zoom, "none", "inert cards must not mimic clickable hover zoom");
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import ProjectCard from "../ProjectCard";
-import { parseWorkFilter, selectWorkCategories } from "../../catalog/filter";
+import { parseWorkFilter, selectWorkCategories } from "./filter";
 import type { WorkCategory, WorkFilterId, WorkProject } from "../../types";
 
 type CatalogExplorerProps = Readonly<{
@@ -22,7 +23,7 @@ function FilterBar({ active, categories, totalUnique, onSelect }: FilterBarProps
     { id: "all", label: "All", count: totalUnique },
     ...categories.map((category) => ({
       id: category.id,
-      label: category.id === "uiux" ? "UI/UX" : category.title,
+      label: category.title,
       count: category.projectIds.length,
     })),
   ];
@@ -30,16 +31,17 @@ function FilterBar({ active, categories, totalUnique, onSelect }: FilterBarProps
   return (
     <div className="work-chips" role="group" aria-label="Work category filters">
       {options.map((option) => (
-        <button
+        <Button
           key={option.id}
+          variant="chip"
+          size="sm"
+          className="work-chip"
           data-filter={option.id}
-          className={option.id === active ? "work-chip work-chip--active" : "work-chip"}
-          type="button"
           aria-pressed={option.id === active}
           onClick={() => onSelect(option.id)}
         >
           {option.label} <span className="work-chip-count">{option.count}</span>
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -73,6 +75,8 @@ function CategorySection({
     </section>
   );
 }
+
+const MemoCategorySection = memo(CategorySection);
 
 export default function CatalogExplorer({ categories, projects }: CatalogExplorerProps) {
   const [active, setActive] = useState<WorkFilterId>("all");
@@ -109,8 +113,8 @@ export default function CatalogExplorer({ categories, projects }: CatalogExplore
     }
   };
 
-  const projectsById = new Map(projects.map((project) => [project.id, project]));
-  const visible = new Set(selectWorkCategories(categories, active).map((category) => category.id));
+  const projectsById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
+  const visibleCategories = selectWorkCategories(categories, active);
 
   return (
     <div className="work-catalog">
@@ -119,11 +123,11 @@ export default function CatalogExplorer({ categories, projects }: CatalogExplore
       </div>
       <div className="work-categories">
         {categories.map((category) => (
-          <CategorySection
+          <MemoCategorySection
             key={category.id}
             category={category}
             projectsById={projectsById}
-            hidden={!visible.has(category.id)}
+            hidden={!visibleCategories.includes(category)}
           />
         ))}
       </div>

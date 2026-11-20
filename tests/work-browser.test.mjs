@@ -15,22 +15,16 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
 
   const shell = await evaluate(`(() => {
     const root = document.querySelector(".work-page");
-    const closing = root?.querySelector(".work-closing");
-    const inactive = closing?.querySelector(".work-closing-action--inactive");
     return {
       root: !!root && root.id === "work",
       container: !!root?.querySelector(".work-container"),
       headings: Array.from(root?.querySelectorAll("h1") || [], heading => heading.textContent.trim()),
       lead: !!root?.querySelector(".work-intro .work-intro-copy")?.textContent.trim(),
-      closing: closing?.querySelector("h2")?.textContent.trim(),
+      closingCount: root?.querySelectorAll(".work-closing").length || 0,
       footer: root?.querySelectorAll(".footer--compact").length || 0,
       footerNotice: root?.querySelector(".footer--compact")?.textContent.trim(),
       placeholders: document.querySelectorAll(".page-placeholder, .page-preview-frame").length,
       nestedMain: document.querySelectorAll("main main").length,
-      homeHref: closing?.querySelector('a[href="#home"]')?.getAttribute("href"),
-      inactiveTag: inactive?.tagName,
-      inactiveLabel: inactive?.textContent.trim(),
-      inactiveStatus: !!closing?.querySelector(".work-closing-status")?.textContent.trim(),
       unsafeLinks: root?.querySelectorAll('a[href^="http"], a[href$=".html"]').length || 0,
     };
   })()`);
@@ -39,18 +33,13 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
   assert.equal(shell.container, true);
   assert.deepEqual(shell.headings, ["My Lab"]);
   assert.equal(shell.lead, true);
-  assert.equal(shell.closing, "Have a project in mind?");
+  assert.equal(shell.closingCount, 0);
   assert.equal(shell.footer, 1);
   assert.equal(shell.footerNotice, "Personal portfolio layout preview — content pending authorization.");
   assert.equal(shell.placeholders, 0);
   assert.equal(shell.nestedMain, 0);
-  assert.equal(shell.homeHref, "#home");
-  assert.equal(shell.inactiveTag, "SPAN");
-  assert.equal(shell.inactiveLabel, "Say Hi");
-  assert.equal(shell.inactiveStatus, true);
-  assert.equal(shell.unsafeLinks, 0);
-
-  await evaluate(`document.querySelector('.work-closing a[href="#home"]').click()`);
+  assert.equal(shell.unsafeLinks, 0); // CaseDetail is not linked while design is in progress.
+  await evaluate(`document.querySelector('.pill a[href="#home"]').click()`);
   await eventually(
     () => evaluate(`window.location.hash === "#home" && !!document.querySelector(".home")`),
     Boolean,
@@ -112,6 +101,7 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
         categories,
         cardCount: cards.length,
         uniqueCount: new Set(cards.map(card => card.dataset.projectId)).size,
+        linkedProjects: cards.filter(card => card.querySelector("a[href]")).map(card => [card.dataset.projectId, card.querySelector("a[href]").getAttribute("href")]),
         cardsComplete: cards.every(card => !!card.querySelector("h3")?.textContent.trim() &&
           !!card.querySelector(".work-project-meta")?.textContent.trim() &&
           !!card.querySelector(".work-project-cover") &&
@@ -125,48 +115,45 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
 
     assert.deepEqual(catalog.buttons, [
       { label: "All 22", disabled: false, pressed: "true" },
-      { label: "UI/UX 9", disabled: false, pressed: "false" },
-      { label: "Branding 9", disabled: false, pressed: "false" },
-      { label: "Social Media 5", disabled: false, pressed: "false" },
-      { label: "Event 5", disabled: false, pressed: "false" },
-      { label: "E-commerce 2", disabled: false, pressed: "false" },
+      { label: "Collection Quartz 9", disabled: false, pressed: "false" },
+      { label: "Collection Ember 9", disabled: false, pressed: "false" },
+      { label: "Collection Fern 5", disabled: false, pressed: "false" },
+      { label: "Collection Azure 5", disabled: false, pressed: "false" },
+      { label: "Collection Willow 2", disabled: false, pressed: "false" },
     ]);
     assert.equal(catalog.filtersHint, false);
     const expectedCategories = [
       [
         "uiux",
         [
-          "cekat-ai-website",
-          "movastocks",
-          "ocistok-mobile-apps",
-          "poci",
-          "maku",
-          "realfood-mobile-apps",
-          "nexta-dashboard",
-          "k-circle",
-          "jaro",
+          "concept-k7m2",
+          "concept-v4q9",
+          "concept-r8n3",
+          "concept-p6t1",
+          "concept-x2d7",
+          "concept-b9f4",
+          "concept-n5w8",
+          "concept-h3j6",
+          "concept-t8c2",
         ],
       ],
       [
         "branding",
         [
-          "cekat-innov-2025",
-          "creative-designer-cekat-ai",
-          "furrr-fun",
-          "realfood-kiddos",
-          "ocistok-graphic",
-          "kaporak",
-          "mr-roastman",
-          "de-jamu",
-          "santuy-coffee",
+          "concept-y4p7",
+          "concept-q6z1",
+          "concept-m2a9",
+          "concept-d7v5",
+          "concept-w1r8",
+          "concept-f5k3",
+          "concept-c9e2",
+          "concept-s4u7",
+          "concept-g8b1",
         ],
       ],
-      ["social", ["cekat-innov-2025", "creative-designer-cekat-ai", "grid-network", "subaru-indonesia", "ergotron"]],
-      [
-        "event",
-        ["cekat-innov-2025", "creative-designer-cekat-ai", "grid-network", "ocistok-graphic", "subaru-indonesia"],
-      ],
-      ["ecommerce", ["realfood-marketplace", "subaru-indonesia"]],
+      ["social", ["concept-y4p7", "concept-q6z1", "concept-j2h6", "concept-l7t4", "concept-a3x9"]],
+      ["event", ["concept-y4p7", "concept-q6z1", "concept-j2h6", "concept-w1r8", "concept-l7t4"]],
+      ["ecommerce", ["concept-e6n5", "concept-l7t4"]],
     ];
     assert.deepEqual(
       catalog.categories.map(({ id, ids }) => [id, ids]),
@@ -183,6 +170,7 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     assert.equal(catalog.unsafeCards, 0);
     assert.equal(catalog.mediaCount, 0);
     assert.equal(catalog.unsafeLinks, 0);
+    assert.deepEqual(catalog.linkedProjects, []);
     assert.equal(catalog.forbiddenCopy, false);
   });
 
@@ -250,12 +238,12 @@ test("Work shell uses the approved safe editorial composition", { timeout: 12000
     await browser.resize(390);
     await browser.motion("reduce");
     const keyboard = await evaluate(`(() => {
-      const link = document.querySelector('.work-closing a[href="#home"]');
+      const link = document.querySelector(".work-chip");
       const chips = Array.from(document.querySelectorAll(".work-chip"));
       link.focus({ focusVisible: true });
       const focused = document.activeElement === link;
       const outline = getComputedStyle(link).outlineStyle;
-      const matched = link.matches(".work-closing-action:focus");
+      const matched = link.matches(":focus");
       const className = link.className;
       const outlineWidth = getComputedStyle(link).outlineWidth;
       chips[0]?.focus();
@@ -341,7 +329,7 @@ test("exact Work legacy route coexists with root preview and safe nav", { timeou
     mainCount: document.querySelectorAll("main").length,
     compactFooterCount: document.querySelectorAll(".work-page footer.footer--compact").length,
     active: Array.from(document.querySelectorAll(".pill a[aria-current=page]"), node => node.textContent.trim()),
-    homeHref: document.querySelector(".work-closing a")?.getAttribute("href"),
+    closingCount: document.querySelectorAll(".work-closing").length,
     navTargets: Array.from(document.querySelectorAll(".pill a"), node => [node.textContent.trim(), node.getAttribute("href")]),
     cardAnchors: document.querySelectorAll(".work-project-card a").length,
   }))()`);
@@ -354,7 +342,7 @@ test("exact Work legacy route coexists with root preview and safe nav", { timeou
     mainCount: 1,
     compactFooterCount: 1,
     active: ["My Lab"],
-    homeHref: "/#home",
+    closingCount: 0,
     navTargets: [
       ["Come In", "/#home"],
       ["Meet Me", "/#meet-me"],

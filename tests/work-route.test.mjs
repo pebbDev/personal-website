@@ -1,17 +1,14 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import { implementedLegacyRoutes, resolveImplementedLegacyPage } from "../src/lib/navigation/legacy-routes.ts";
 import { canonicalRoutes, getNavbarHref } from "../src/lib/navigation/config.ts";
 
-test("only implemented Work legacy route resolves and absent case-study routes fail closed", () => {
-  assert.deepEqual(implementedLegacyRoutes, [{ sourceFile: "work.html", kind: "work" }]);
-  assert.deepEqual(resolveImplementedLegacyPage("work.html"), { sourceFile: "work.html", kind: "work" });
-  assert.equal(resolveImplementedLegacyPage("missing.html"), null);
-  assert.equal(resolveImplementedLegacyPage("cekat-ai-website.html"), null);
-  assert.equal(resolveImplementedLegacyPage("meet-me.html"), null);
+test("Work keeps a literal .html route and does not depend on catch-all routing", () => {
+  assert.equal(existsSync("src/app/work.html/page.tsx"), true);
+  assert.equal(existsSync("src/app/[slug]/page.tsx"), false);
 });
 
-test("legacy navigation resolves by pathname while keeping root preview hashes unchanged", () => {
+test("Work and detail navbar destinations remain correct outside the root preview", () => {
   assert.equal(canonicalRoutes.work, "/work.html");
   assert.equal(canonicalRoutes.home, "/");
   assert.equal(getNavbarHref("home", "/"), "#home");
@@ -20,4 +17,21 @@ test("legacy navigation resolves by pathname while keeping root preview hashes u
   assert.equal(getNavbarHref("home", "/work.html"), "/#home");
   assert.equal(getNavbarHref("meet-me", "/work.html"), "/#meet-me");
   assert.equal(getNavbarHref("work", "/work.html"), "/work.html");
+  assert.equal(getNavbarHref("home", "/cekat-ai-website.html"), "/#home");
+  assert.equal(getNavbarHref("work", "/cekat-ai-website.html"), "/work.html");
+  assert.equal(getNavbarHref("work", "/case-detail"), "/work.html");
+});
+
+test("Navbar delegates route-aware link behavior to NavLink", () => {
+  const navbar = readFileSync("src/components/layout/Navbar/index.tsx", "utf8");
+  const navLink = readFileSync("src/lib/navigation/NavLink.tsx", "utf8");
+  const navigationIndex = readFileSync("src/lib/navigation/index.ts", "utf8");
+  assert.doesNotMatch(navbar, /usePathname|useNavbarNavigation|next\/navigation|window\.location/);
+  assert.match(navbar, /navTab=\{link\.id\}/);
+  assert.match(navbar, /homeBrand/);
+  assert.match(navLink, /usePathname/);
+  assert.match(navLink, /usePreviewTab/);
+  assert.match(navLink, /getNavbarHref/);
+  assert.doesNotMatch(navigationIndex, /useNavbarNavigation/);
+  assert.equal(existsSync("src/lib/navigation/use-navbar-navigation.ts"), false);
 });
