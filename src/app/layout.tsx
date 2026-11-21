@@ -5,9 +5,27 @@ import ThemeProvider from "@/components/provider/theme-provider";
 import { NavLink, sectionRoutes } from "@/lib/navigation";
 import "./globals.css";
 
+const siteUrl = new URL("https://febriyadiii.vercel.app");
+const title = "Febriyadi | Personal Website";
+const description = "A space for ideas and work.";
+
 export const metadata: Metadata = {
-  title: "Personal Website | Feature Preview",
-  description: "A private refactor preview with source-faithful navigation and temporary text-only pages.",
+  metadataBase: siteUrl,
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    type: "website",
+    siteName: "Febriyadi",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/opengraph-image.png"],
+  },
   robots: { index: false, follow: false },
 };
 
