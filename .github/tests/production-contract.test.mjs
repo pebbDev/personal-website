@@ -150,7 +150,7 @@ test("Unready candidate, wrong project/target/SHA, bad API response fail before 
 });
 
 test("Post-promotion smoke is anonymous and never follows redirect-to-login", () => {
-  assert.match(file, /PUBLIC_DOMAIN: personal-website-nine-iota-82\.vercel\.app/);
+  assert.match(file, /PUBLIC_DOMAIN: febriyadiii\.vercel\.app/);
   assert.match(file, /"https:\/\/\$PUBLIC_DOMAIN\/"/);
   assert.doesNotMatch(file, /\/work\.html/);
   assert.match(file, /curl --silent --show-error --output \/dev\/null/);
