@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import ProjectCard from "../ProjectCard";
-import { parseWorkFilter, selectWorkCategories } from "./filter";
+import { selectWorkCategories } from "./filter";
 import type { WorkCategory, WorkFilterId, WorkProject } from "../../types";
 
 type CatalogExplorerProps = Readonly<{
@@ -82,28 +82,8 @@ export default function CatalogExplorer({ categories, projects }: CatalogExplore
   const [active, setActive] = useState<WorkFilterId>("all");
   const filterBarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const syncFromLocation = () => {
-      if (window.location.pathname === "/work.html") setActive(parseWorkFilter(window.location.hash));
-    };
-
-    // The URL fragment is unavailable in the server-rendered HTML.
-    // Keep All visible until hydration, and never hide no-JS content.
-    queueMicrotask(syncFromLocation);
-    window.addEventListener("hashchange", syncFromLocation);
-    window.addEventListener("popstate", syncFromLocation);
-    return () => {
-      window.removeEventListener("hashchange", syncFromLocation);
-      window.removeEventListener("popstate", syncFromLocation);
-    };
-  }, []);
-
   const onSelect = (id: WorkFilterId) => {
     setActive(id);
-    if (window.location.pathname === "/work.html") {
-      const hash = id === "all" ? "" : `#${id}`;
-      window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
-    }
     if (filterBarRef.current) {
       const top = Math.max(0, filterBarRef.current.getBoundingClientRect().top + window.scrollY - 90);
       window.scrollTo({
