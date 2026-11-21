@@ -41,7 +41,7 @@ Follow these steps to run the project locally.
 3. Install dependencies:
 
    ```bash
-   pnpm install --frozen-lockfile
+   pnpm install
    ```
 
 ## Usage
