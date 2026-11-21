@@ -1,4 +1,18 @@
-export type PagePreview = {
+export type WorkCategoryId = "uiux" | "branding" | "social" | "event" | "ecommerce";
+
+export type WorkFilterId = "all" | WorkCategoryId;
+
+export type WorkProject = Readonly<{
+  id: string;
+  sourceHref: string;
+  displayTitle: string;
+  displayMeta: string;
+  approvedCover?: string;
+}>;
+
+export type WorkCategory = Readonly<{
+  id: WorkCategoryId;
   title: string;
   description: string;
-};
+  projectIds: readonly string[];
+}>;

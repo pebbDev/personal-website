@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
-export type ButtonVariant = "base" | "primary" | "dark" | "line";
+export type ButtonVariant = "base" | "primary" | "dark" | "line" | "chip";
 export type ButtonSize = "sm" | "md" | "lg";
 
 type SharedProps = {

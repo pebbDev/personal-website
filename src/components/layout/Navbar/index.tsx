@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { CircleUserRound } from "lucide-react";
 import { navbarLinks } from "./constants";
-import { NavLink, previewRoutes, usePreviewTab } from "@/lib/navigation";
-
+import { NavLink, previewRoutes, resolveNavbarHref, usePreviewTab } from "@/lib/navigation";
 import ThemeToggle from "@/components/common/theme-toggle/theme-toggle";
 
 const Navbar = () => {
-  const activeTab = usePreviewTab();
+  const previewTab = usePreviewTab();
+  const onWorkPage = usePathname() === "/work.html";
+  const activeTab = onWorkPage ? "work" : previewTab;
   const [compact, setCompact] = useState(false);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ const Navbar = () => {
   return (
     <header className={`topnav${compact ? " compact" : ""}`} id="nav">
       <div className="topnav__in">
-        <NavLink className="brand" href={previewRoutes.home} aria-label="Portfolio, Home">
+        <NavLink className="brand" href={onWorkPage ? "/" : previewRoutes.home} aria-label="Portfolio, Home">
           <span className="brand__mark" aria-hidden="true">
             <CircleUserRound size={30} strokeWidth={1.8} />
           </span>
@@ -31,7 +33,7 @@ const Navbar = () => {
           <ul>
             {navbarLinks.map((link) => (
               <li key={link.id}>
-                <NavLink {...link} active={link.id === activeTab} />
+                <NavLink {...link} href={resolveNavbarHref(link.id, onWorkPage)} active={link.id === activeTab} />{" "}
               </li>
             ))}
           </ul>
