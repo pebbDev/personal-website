@@ -1,5 +1,3 @@
-import type { PreviewTab } from "./types";
-
 // Private preview navigation. These hashes are not the final 25 .html routes.
 export const previewRoutes = {
   home: "#home",
@@ -7,23 +5,18 @@ export const previewRoutes = {
   work: "#work",
 } as const;
 
-export const canonicalRoutes = {
-  home: "/",
-  work: "/work.html",
-  meetMePreview: "/#meet-me",
-} as const;
-
-// Development-only CaseDetail destination; not a published case-study route.
+// PER-18: private development preview and literal Work route.
 export const localPreviewRoutes = {
-  caseStudy01: `${canonicalRoutes.work}?preview=case-study-01`,
+  caseStudy01: "/work.html?preview=case-study-01",
 } as const;
 
-export function getNavbarHref(id: PreviewTab, pathname: string): string {
-  if (pathname === canonicalRoutes.home) return previewRoutes[id];
-  if (id === "home") return "/#home";
-  if (id === "meet-me") return canonicalRoutes.meetMePreview;
-  return canonicalRoutes.work;
+export function resolveNavbarHref(tab: keyof typeof previewRoutes, onWorkPage: boolean): string {
+  if (!onWorkPage) return previewRoutes[tab];
+  if (tab === "home") return "/";
+  if (tab === "work") return "/work.html";
+  return "/#meet-me";
 }
+
 // Section destinations are distinct from the three preview tabs.
 export const sectionRoutes = {
   contact: "#contact",

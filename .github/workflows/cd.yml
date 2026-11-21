@@ -30,8 +30,7 @@ jobs:
           persist-credentials: false
 
       - name: Quarantine public assets on ephemeral runner
-        run: node .github/ci/preview-asset-gate.mjs prepare
-
+        run: node .github/security/preview-asset-gate.mjs prepare
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -83,8 +82,7 @@ jobs:
           persist-credentials: false
 
       - name: Quarantine public assets on ephemeral runner
-        run: node .github/ci/preview-asset-gate.mjs prepare
-
+        run: node .github/security/preview-asset-gate.mjs prepare
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -113,8 +111,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
-        run: node .github/ci/verify-vercel-auth.mjs
-
+        run: node .github/security/verify-vercel-auth.mjs
       - name: Install pinned Vercel CLI
         run: npm install --global "vercel@$VERCEL_CLI_VERSION"
 
@@ -134,8 +131,7 @@ jobs:
         run: vercel build
 
       - name: Verify sanitized prebuilt output before upload
-        run: node .github/ci/preview-asset-gate.mjs verify
-
+        run: node .github/security/preview-asset-gate.mjs verify
       - name: Deploy Vercel Preview (no --prod)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

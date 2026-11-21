@@ -7,7 +7,7 @@ type PlaceholderProps = Readonly<{
 const defaultPositions = [1, 2, 3, 4] as const;
 // Shared, asset-free version of the Home Gallery's four-panel visual pattern.
 export default function Placeholder({
-  label = "Project image placeholder",
+  label = "Abstract image placeholder",
   decorative = false,
   className,
   positions = defaultPositions,

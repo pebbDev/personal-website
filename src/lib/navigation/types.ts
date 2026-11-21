@@ -10,6 +10,4 @@ export type NavLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" 
   label?: string;
   Icon?: LucideIcon;
   active?: boolean;
-  navTab?: PreviewTab;
-  homeBrand?: boolean;
 };

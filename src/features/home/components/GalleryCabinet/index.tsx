@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
-import { FolderOpen } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { NavLink } from "@/lib/navigation";
 import Placeholder from "@/components/ui/Placeholder";
 import type { GalleryCategory, GalleryCategoryId } from "../../types";
@@ -110,7 +110,7 @@ export default function GalleryCabinet({ categories }: GalleryCabinetProps) {
                     positions={category.media.map((slot) => slot.position)}
                   />{" "}
                   <span className="home-gallery-overlay" aria-hidden="true">
-                    See Folder <FolderOpen size={20} strokeWidth={1.8} />{" "}
+                    See Folder <ArrowRight size={20} strokeWidth={1.8} />
                   </span>
                 </NavLink>
               ) : (

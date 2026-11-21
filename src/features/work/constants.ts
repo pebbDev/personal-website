@@ -1,31 +1,5 @@
 import type { WorkCategory, WorkProject } from "./types";
 
-const sourceProjectIds = [
-  "cekat-ai-website",
-  "movastocks",
-  "ocistok-mobile-apps",
-  "poci",
-  "maku",
-  "realfood-mobile-apps",
-  "nexta-dashboard",
-  "k-circle",
-  "jaro",
-  "cekat-innov-2025",
-  "creative-designer-cekat-ai",
-  "furrr-fun",
-  "realfood-kiddos",
-  "ocistok-graphic",
-  "kaporak",
-  "mr-roastman",
-  "de-jamu",
-  "santuy-coffee",
-  "grid-network",
-  "subaru-indonesia",
-  "ergotron",
-  "realfood-marketplace",
-] as const;
-
-// Stable dummy IDs for private layout previews; source URLs remain only for traceability.
 const dummyCodes = [
   "k7m2",
   "v4q9",
@@ -51,17 +25,13 @@ const dummyCodes = [
   "e6n5",
 ] as const;
 
-export const workProjects: readonly WorkProject[] = sourceProjectIds.map((sourceId, index) => {
-  const code = dummyCodes[index];
-  if (!code) throw new Error("Missing dummy project code");
-  return {
-    id: `concept-${code}`,
-    // Source provenance is private and is never used as a displayed project ID.
-    sourceHref: `/${sourceId}.html`,
-    displayTitle: `Concept ${code.toUpperCase()}`,
-    displayMeta: "Portfolio layout preview",
-  };
-});
+// Neutral private-preview IDs; original source identity is not stored in public source code.
+export const workProjects: readonly WorkProject[] = dummyCodes.map((code) => ({
+  id: `concept-${code}`,
+  sourceHref: `/concept-${code}.html`,
+  displayTitle: `Concept ${code.toUpperCase()}`,
+  displayMeta: "Portfolio layout preview",
+}));
 
 export const workCategories: readonly WorkCategory[] = [
   {

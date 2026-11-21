@@ -32,7 +32,7 @@ export default function ProjectCard({ project }: Readonly<{ project: WorkProject
         className="work-project-card work-project-card--preview"
         data-project-id={project.id}
         href={localPreviewRoutes.caseStudy01}
-        aria-label="Open Project study 01 case study preview"
+        aria-label={`Open ${project.displayTitle} case study preview`}
       >
         {content}
       </NavLink>
