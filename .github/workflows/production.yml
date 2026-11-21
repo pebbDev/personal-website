@@ -175,7 +175,7 @@ jobs:
 
       - name: Smoke-test public Vercel domain (no login)
         env:
-          PUBLIC_DOMAIN: personal-website-nine-iota-82.vercel.app
+          PUBLIC_DOMAIN: febriyadiii.vercel.app
         shell: bash
         run: |
           set -euo pipefail
