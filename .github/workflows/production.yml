@@ -1,0 +1,189 @@
+# PER-21 Minimum MVP: First Release is controlled; subsequent main merges require explicit activation.
+# First Release owner GO, rights clearance and GitHub production environment approval are separate prerequisites.
+name: CD | Controlled Vercel Production from main
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vercel-production-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      ${{ github.ref == 'refs/heads/main' &&
+          vars.PUBLIC_CONTENT_APPROVED == 'true' &&
+          (github.event_name == 'workflow_dispatch' || vars.PRODUCTION_CD_ENABLED == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: production
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      HUSKY: "0"
+      VERCEL_ORG_ID: ${{ vars.PRODUCTION_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.PRODUCTION_VERCEL_PROJECT_ID }}
+      VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+
+    steps:
+      - name: Checkout approved main SHA
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Refuse stale SHA, wrong target, or deployable legacy public directory
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -n "$VERCEL_TOKEN" || { echo 'Missing Production VERCEL_TOKEN'; exit 1; }
+          test "$VERCEL_ORG_ID" = 'team_9k1zQIUlgcV3hNaBqW9EL3ON' || { echo 'Wrong Production Vercel team'; exit 1; }
+          test "$VERCEL_PROJECT_ID" = 'prj_yQtGZhqJHjLQNUL5w6WEAVa2Y963' || { echo 'Wrong Production Vercel project'; exit 1; }
+          [[ "$VERCEL_CLI_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Vercel CLI version must be pinned'; exit 1; }
+          if [ -e public ] || [ -L public ]; then
+            echo 'Unexpected public/ directory or symlink: review rights/content before deployment.'
+            exit 1
+          fi
+          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test -n "$remote_sha" && test "$remote_sha" = "$GITHUB_SHA" || { echo 'Not the current main SHA'; exit 1; }
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: Generate Next.js route types
+        run: pnpm exec next typegen
+
+      - name: TypeScript
+        run: pnpm typecheck
+
+      - name: Prettier
+        run: pnpm format:check
+
+      - name: Verify Next.js build
+        run: pnpm build
+
+      - name: Install pinned Vercel CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global "vercel@$VERCEL_CLI_VERSION"
+
+      - name: Pull Production configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production
+
+      - name: Confirm linked Vercel Production project
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const p=require('./.vercel/project.json');if(p.orgId!==process.env.VERCEL_ORG_ID||p.projectId!==process.env.VERCEL_PROJECT_ID){throw Error('Vercel Production project mismatch')}"
+
+      - name: Build immutable Production candidate
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod
+
+      - name: Stage Production candidate without moving domain
+        id: stage
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(vercel deploy --prebuilt --prod --skip-domain --meta "per21CommitSha=$GITHUB_SHA")"
+          DEPLOYMENT_URL="$url" node --input-type=module -e '
+            const u = new URL(process.env.DEPLOYMENT_URL);
+            if (u.protocol !== "https:" || !u.hostname.endsWith(".vercel.app")) {
+              throw new Error("Unexpected Vercel staging URL");
+            }
+          '
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify READY staging artifact, project, and commit provenance
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.stage.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          if (process.env.VERCEL_ORG_ID !== 'team_9k1zQIUlgcV3hNaBqW9EL3ON' ||
+              process.env.VERCEL_PROJECT_ID !== 'prj_yQtGZhqJHjLQNUL5w6WEAVa2Y963' ||
+              !process.env.VERCEL_TOKEN) {
+            throw new Error('Incorrect Production target or missing token during candidate verification');
+          }
+          const deploymentUrl = new URL(process.env.DEPLOYMENT_URL);
+          const idOrUrl = deploymentUrl.hostname;
+          const api = new URL(`https://api.vercel.com/v13/deployments/${encodeURIComponent(idOrUrl)}`);
+          api.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
+          const response = await fetch(api, {
+            headers: { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
+          });
+          if (!response.ok) throw new Error(`Cannot verify candidate: HTTP ${response.status}`);
+          const deployment = await response.json();
+          if (deployment.projectId !== process.env.VERCEL_PROJECT_ID ||
+              deployment.target !== "production" ||
+              deployment.readyState !== "READY" ||
+              deployment.meta?.per21CommitSha !== process.env.GITHUB_SHA) {
+            throw new Error("Candidate READY/project/commit provenance mismatch");
+          }
+          console.log("Production candidate READY with verified project and commit metadata.");
+          NODE
+
+      - name: Refuse stale candidate immediately before Production promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test -n "$remote_sha" && test "$remote_sha" = "$GITHUB_SHA" || { echo 'Current main changed; refusing promotion'; exit 1; }
+
+      - name: Promote verified candidate to Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.stage.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          vercel promote "$DEPLOYMENT_URL" --yes
+
+      - name: Smoke-test public Vercel domain (no login)
+        env:
+          PUBLIC_DOMAIN: personal-website-nine-iota-82.vercel.app
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Hash previews (/#work, /#meet-me) are client-side states; fragments are not sent in HTTP requests.
+          # Only the public Home route is currently server-addressable.
+          code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 "https://$PUBLIC_DOMAIN/")"
+          test "$code" = "200" || { echo "Production smoke failure for / (HTTP $code)"; exit 1; }
+          printf 'Production main SHA: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Staged/promoted Vercel URL: %s\n' "${{ steps.stage.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Public domain: https://%s\n' "$PUBLIC_DOMAIN" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Production smoke succeeded (anonymous /).'
