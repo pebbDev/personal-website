@@ -68,6 +68,3 @@ pnpm build
 - **Live website:** [febriyadiii.vercel.app](https://febriyadiii.vercel.app/)
 - **Repository:** [pebbDev/personal-website](https://github.com/pebbDev/personal-website)
 
-## Project Status
-
-This website is being developed and refactored incrementally. Additional pages, interactions, and visual fidelity checks remain part of the ongoing work.
