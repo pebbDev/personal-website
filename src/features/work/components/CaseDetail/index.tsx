@@ -1,5 +1,6 @@
 import Footer from "@/components/layout/Footer";
 import ClosingSection from "@/components/layout/ClosingSection";
+import { previewRoutes } from "@/lib/navigation";
 import CaseArticle from "./CaseArticle";
 import CaseHero from "./CaseHero";
 import { CasePlaceholder } from "./CaseMedia";
@@ -22,8 +23,8 @@ export default function CaseDetail({ caseStudy }: Readonly<{ caseStudy: CaseDeta
         </div>
         <ClosingSection
           heading="Explore more from My Lab."
-          primary={{ kind: "link", label: "Back to My Lab", href: "/work.html" }}
-          secondary={{ kind: "link", label: "Back to Home", href: "/" }}
+          primary={{ kind: "link", label: "Back to My Lab", href: previewRoutes.work }}
+          secondary={{ kind: "link", label: "Back to Home", href: previewRoutes.home }}
         />
       </div>
       <Footer variant="compact" notice="Personal portfolio layout preview — content pending authorization." />{" "}

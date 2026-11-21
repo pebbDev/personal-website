@@ -1,3 +1,4 @@
+import { previewRoutes } from "@/lib/navigation";
 import { workCategories } from "../../constants";
 import { CasePlaceholder } from "./CaseMedia";
 import type { CaseDetailData } from "./types";
@@ -10,11 +11,11 @@ export default function CaseHero({ caseStudy }: Readonly<{ caseStudy: CaseDetail
     <header className="case-detail-hero">
       <div className="case-detail-hero-copy">
         <nav className="case-detail-breadcrumb" aria-label="Breadcrumb">
-          <a href="/work.html">My Lab</a>
+          <a href={previewRoutes.work}>My Lab</a>
           <span className="case-detail-breadcrumb-separator" aria-hidden="true">
             /
           </span>
-          <a href={`/work.html#${caseStudy.categoryId}`}>{category.title}</a>
+          <span>{category.title}</span>
           <span className="case-detail-breadcrumb-separator" aria-hidden="true">
             /
           </span>

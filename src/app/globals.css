@@ -2164,11 +2164,6 @@ a.home-journey-resume:focus-visible svg {
     min-height: 420px;
   }
 }
-@media (max-width: 900px) {
-  .home {
-    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-}
 @media (max-width: 640px) {
   .home-wrap {
     padding: 0 16px;
