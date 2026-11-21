@@ -29,8 +29,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Quarantine public assets on ephemeral runner
-        run: node .github/security/preview-asset-gate.mjs prepare
+      - name: Reject public directory or symlink before build
+        shell: bash
+        run: |
+          if [ -e public ] || [ -L public ]; then
+            echo 'Refusing to build with a public path present.'
+            exit 1
+          fi
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -81,8 +86,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Quarantine public assets on ephemeral runner
-        run: node .github/security/preview-asset-gate.mjs prepare
+      - name: Reject public directory or symlink before build
+        shell: bash
+        run: |
+          if [ -e public ] || [ -L public ]; then
+            echo 'Refusing to build or deploy with a public path present.'
+            exit 1
+          fi
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -111,7 +121,45 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
-        run: node .github/security/verify-vercel-auth.mjs
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const projectId = process.env.VERCEL_PROJECT_ID;
+          const teamId = process.env.VERCEL_ORG_ID;
+          const token = process.env.VERCEL_TOKEN;
+          const expectedProjectId = 'prj_EtYBH7RYrHjuTD1sgkLyd8tKOujD';
+          const expectedTeamId = 'team_9k1zQIUlgcV3hNaBqW9EL3ON';
+
+          if (!projectId || !teamId || !token) {
+            throw new Error('Missing required Vercel project, team, or token configuration');
+          }
+          if (projectId !== expectedProjectId || teamId !== expectedTeamId) {
+            throw new Error('Vercel Preview target mismatch before upload');
+          }
+
+          const url = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}`);
+          url.searchParams.set('teamId', teamId);
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.ok) {
+            throw new Error(`Cannot inspect Vercel project protection: HTTP ${response.status}`);
+          }
+
+          const project = await response.json();
+          if (project?.id !== expectedProjectId) {
+            throw new Error('Vercel project ID mismatch before upload');
+          }
+          const protection = project?.ssoProtection;
+          if (
+            !protection ||
+            protection.deploymentType !== 'all' ||
+            ('enabled' in protection && protection.enabled !== true)
+          ) {
+            throw new Error('Vercel Authentication must protect ALL deployments before upload');
+          }
+          console.log('Vercel Authentication: all Preview deployments protected.');
+          NODE
       - name: Install pinned Vercel CLI
         run: npm install --global "vercel@$VERCEL_CLI_VERSION"
 
@@ -130,8 +178,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build
 
-      - name: Verify sanitized prebuilt output before upload
-        run: node .github/security/preview-asset-gate.mjs verify
       - name: Deploy Vercel Preview (no --prod)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
