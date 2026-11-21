@@ -5,7 +5,7 @@ import Education from "./sections/education";
 import Certifications from "./sections/certifications";
 import Skills from "./sections/skills";
 import Languages from "./sections/languages";
-import Closing from "./sections/closing";
+import ClosingSection from "@/components/layout/ClosingSection";
 import Footer from "@/components/layout/Footer";
 import { meetMeContent, meetMeTocItems } from "./constants";
 
@@ -22,7 +22,12 @@ export default function MeetMe() {
             <Certifications entries={meetMeContent.certifications} />
             <Skills rows={meetMeContent.skills} />
             <Languages rows={meetMeContent.languages} />
-            <Closing heading={meetMeContent.closingHeading} />
+            <ClosingSection
+              className="meet-me-closing"
+              heading={meetMeContent.closingHeading}
+              primary={{ kind: "link", label: "See my work", href: "#work" }}
+              secondary={{ kind: "disabled", label: "Say Hi 💬" }}
+            />
           </article>
         </div>
       </div>
